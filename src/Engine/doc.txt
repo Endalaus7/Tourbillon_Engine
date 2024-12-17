@@ -1,0 +1,5 @@
+"Core" is Engine's core part,manager and tick systems
+"System" is ECS part which has relationship of Components and Entities.You can write generic logic here
+"Component"is another ECS part,it save datas of Entity and local logic.
+"Entity" is last of ECS,only as a sign of Entity
+"Common"proves global functions
