@@ -1,1 +1,5 @@
 *.spv
+3rdParty
+build
+bin
+install
