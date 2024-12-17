@@ -189,11 +189,13 @@ void TourBillon::MainCameraPass::updateDescriptorSet()
 	update_descriptorsets_info.write_info[0].buffer = m_uniformbuffer->buffer;
 	update_descriptorsets_info.write_info[0].descriptorset = m_descriptor[m_rhi->getCurrentFrameIndex()].descriptor_set;
 	update_descriptorsets_info.write_info[0].range = sizeof(UniformBufferObject);
+	update_descriptorsets_info.write_info[0].offset = 0;
 	update_descriptorsets_info.write_info[0].descriptorType = RHI_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
 	update_descriptorsets_info.write_info[1].buffer = m_uniformdynamicbuffer->buffer;
 	update_descriptorsets_info.write_info[1].descriptorset = m_descriptor[m_rhi->getCurrentFrameIndex()].descriptor_set;
 	update_descriptorsets_info.write_info[1].range = sizeof(UniformBufferDynamicObject);
+	update_descriptorsets_info.write_info[1].offset = 0;
 	update_descriptorsets_info.write_info[1].descriptorType = RHI_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
 	m_rhi->updateDescriptorSets(update_descriptorsets_info);
 }

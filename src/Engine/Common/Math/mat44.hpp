@@ -17,7 +17,10 @@ namespace TBMath
 			m[3][0] = 0.0f; m[3][1] = 0.0f; m[3][2] = 0.0f; m[3][3] = 1.0f;
 			//@formatter:on
 		}
-
+		Mat44(Real mat[4][4])
+		{
+			std::memcpy(m, mat, 16 * sizeof(mat[0][0]));
+		}
 
 		Mat44 operator*(Mat44 const& rhs)
 		{
@@ -51,8 +54,20 @@ namespace TBMath
 				(rhs.x * m[3][0]) + (rhs.y * m[3][1]) + (rhs.z * m[3][2]) + (rhs.w * m[3][3]));
 		}
 
-		float* operator[](int row) {
+		Real* operator[](int row) {
 			return m[row]; // 返回该行的数组
+		}
+
+		void transpose()
+		{
+			Mat44 tmp = m;
+			for (int i = 0; i < 4; i++)
+			{
+				for (int j = 0; j < 4; j++)
+				{
+					m[i][j] = tmp[j][i];
+				}
+			}
 		}
 
 		Real m[4][4];

@@ -56,7 +56,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 		Transfrom trans;
 		trans.rotation = TBMath::Vec3(0, 0, 0);
 		trans.scale = TBMath::Vec3(1, 1, 1);
-		trans.translation = TBMath::Vec3(1, 0, 0);
+		trans.translation = TBMath::Vec3(0, 0, 0);
 
 		Geometry mesh;
 		Vertex v1(Point3d(-0.5f, -0.5f, 0.f), Point2d(1.0f, 0.0f), ColorRGBA(1.0f, 0.0f, 0.0f, 1.0f));
@@ -96,7 +96,7 @@ void TourBillon::TBEngine::run()
 
 void TourBillon::TBEngine::UpdateBeforeRender(float dt)
 {
-	//const auto& trans_components = ECSManager::Instance()->GetComponentEntities<Transfrom>();
+	const auto& trans_components = ECSManager::Instance()->GetComponentEntities<Camera3D>();
 
 	return;
 }

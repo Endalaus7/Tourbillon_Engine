@@ -784,6 +784,7 @@ bool TourBillon::VulkanRHI::AllocateDescriptorSets(const RHIDescriptorSetAllocat
 bool TourBillon::VulkanRHI::updateDescriptorSets(RHIUpdatesDescriptorSetsInfo& writeinfo)
 {
     TBVector<VkWriteDescriptorSet> descriptorWrite(writeinfo.write_info.size());
+    TBVector<VkDescriptorBufferInfo> descriptorBufferInfo(writeinfo.write_info.size());
     uint32_t index = 0;
     for (auto itr : writeinfo.write_info)
     {
@@ -791,9 +792,12 @@ bool TourBillon::VulkanRHI::updateDescriptorSets(RHIUpdatesDescriptorSetsInfo& w
 
         VulkanBuffer* vk_buffer = dynamic_cast<VulkanBuffer*>(itr.buffer);
         VulkanDescriptorSet* vk_descriptor = dynamic_cast<VulkanDescriptorSet*>(itr.descriptorset);
-        bufferInfo.buffer = vk_buffer->buffer;
-        bufferInfo.offset = 0;
-        bufferInfo.range = itr.range;
+        descriptorBufferInfo[index].buffer = vk_buffer->buffer;
+        descriptorBufferInfo[index].offset = itr.offset;
+        descriptorBufferInfo[index].range = itr.range;
+		//bufferInfo.buffer = vk_buffer->buffer;
+		//bufferInfo.offset = itr.offset;
+		//bufferInfo.range = itr.range;
 
         descriptorWrite[index].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrite[index].dstSet = vk_descriptor->descriptor;
@@ -801,12 +805,12 @@ bool TourBillon::VulkanRHI::updateDescriptorSets(RHIUpdatesDescriptorSetsInfo& w
         descriptorWrite[index].dstArrayElement = 0;
         descriptorWrite[index].descriptorType = static_cast<VkDescriptorType>(itr.descriptorType);
         descriptorWrite[index].descriptorCount = 1;
-        descriptorWrite[index].pBufferInfo = &bufferInfo;
+        descriptorWrite[index].pBufferInfo = &descriptorBufferInfo[index];
 
         index++;
     }
 
-    vkUpdateDescriptorSets(m_device, writeinfo.write_info.size(), descriptorWrite.data(), 0, nullptr);
+    vkUpdateDescriptorSets(m_device, descriptorWrite.size(), descriptorWrite.data(), 0, nullptr);
 
     return true;
 }

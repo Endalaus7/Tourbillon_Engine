@@ -78,6 +78,7 @@ namespace TourBillon
 		RHIBuffer* buffer;
 		RHIDescriptorSet* descriptorset;
 		RHIDeviceSize range;
+		RHIDeviceSize offset;
 		RHIDescriptorType descriptorType;
 	};
 	struct RHIUpdatesDescriptorSetsInfo
