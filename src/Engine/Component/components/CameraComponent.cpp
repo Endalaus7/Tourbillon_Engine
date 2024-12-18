@@ -9,16 +9,14 @@ TBMath::Mat44 TourBillon::Camera3D::GetVPMatrix()
 	TBMath::Mat44 proj_mat = TBMath::perspective(ToRadians(fovX), fovX / fovY, nearClip, farClip);
 	proj_mat[1][1] *= -1;
 
-	//view_mat.transpose();
-	//proj_mat.transpose();
-	//
 	//glm::mat4x4 view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 	//glm::mat4x4 proj = glm::perspective(glm::radians(60.0f), 1.f, 0.1f, 10.0f);
 	//proj[1][1] *= -1;
 	//
 	//glm::mat4x4 glmret = proj * view;
-	//TBMath::Mat44 tbret = proj_mat * view_mat;
+	TBMath::Mat44 tbret = proj_mat * view_mat;
 
 	
-	return proj_mat * view_mat;
+	return tbret.transpose();
+	return TBMath::Mat44();
 }

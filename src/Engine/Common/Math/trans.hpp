@@ -75,19 +75,19 @@ namespace TBMath
 
         // 构造旋转矩阵部分
 		Result[0][0] = r.x;
-		Result[1][0] = r.y;
-		Result[2][0] = r.z;
-		Result[0][1] = u.x;
-		Result[1][1] = u.y;
-		Result[2][1] = u.z;
-		Result[0][2] = -f.x;
-		Result[1][2] = -f.y;
-		Result[2][2] = -f.z;
+        Result[0][1] = r.y;
+        Result[0][2] = r.z;
+        Result[1][0] = u.x;
+        Result[1][1] = u.y;
+        Result[1][2] = u.z;
+        Result[2][0] = -f.x;
+        Result[2][1] = -f.y;
+        Result[2][2] = -f.z;
 
         // 构造平移矩阵部分
-		Result[3][0] = -r.dot(eye);//-dot(s, eye);
-		Result[3][1] = -u.dot(eye);//-dot(u, eye);
-		Result[3][2] = f.dot(eye);//dot(f, eye);
+		Result[0][3] = -r.dot(eye);//-dot(s, eye);
+		Result[1][3] = -u.dot(eye);//-dot(u, eye);
+		Result[2][3] = f.dot(eye);//dot(f, eye);
 
         return Result;
     }
@@ -101,21 +101,21 @@ namespace TBMath
 
         // 设置透视投影矩阵
 		result.m[0][0] = 1.0f / (tanHalfFovy * aspect);
-		result.m[1][0] = 0.0f;
-		result.m[2][0] = 0.0f;
-		result.m[3][0] = 0.0f;
-		result.m[0][1] = 0.0f;
-		result.m[1][1] = 1.0f / tanHalfFovy;
-		result.m[2][1] = 0.0f;
-		result.m[3][1] = 0.0f;
-		result.m[0][2] = 0.0f;
-		result.m[1][2] = 0.0f;
-		result.m[2][2] = (far + near) / (near - far);
-		result.m[3][2] = (2.0f * far * near) / (near - far);
-		result.m[0][3] = 0.0f;
-		result.m[1][3] = 0.0f;
-		result.m[2][3] = -1.0f;
-		result.m[3][3] = 0.0f;
+        result.m[0][1] = 0.0f;
+        result.m[0][2] = 0.0f;
+        result.m[0][3] = 0.0f;
+        result.m[1][0] = 0.0f;
+        result.m[1][1] = 1.0f / tanHalfFovy;
+        result.m[1][2] = 0.0f;
+        result.m[1][3] = 0.0f;
+        result.m[2][0] = 0.0f;
+        result.m[2][1] = 0.0f;
+        result.m[2][2] = (far + near) / (near - far);
+        result.m[2][3] = (2.0f * far * near) / (near - far);
+        result.m[3][0] = 0.0f;
+        result.m[3][1] = 0.0f;
+        result.m[3][2] = -1.0f;
+        result.m[3][3] = 0.0f;
 
         return result;
     }

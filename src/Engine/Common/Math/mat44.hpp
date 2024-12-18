@@ -58,7 +58,7 @@ namespace TBMath
 			return m[row]; // 返回该行的数组
 		}
 
-		void transpose()
+		Mat44 transpose()
 		{
 			Mat44 tmp = m;
 			for (int i = 0; i < 4; i++)
@@ -68,6 +68,7 @@ namespace TBMath
 					m[i][j] = tmp[j][i];
 				}
 			}
+			return *this;
 		}
 
 		Real m[4][4];

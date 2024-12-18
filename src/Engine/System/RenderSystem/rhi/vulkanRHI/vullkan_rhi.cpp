@@ -256,7 +256,8 @@ void TourBillon::VulkanRHI::UpdateDraw(float dt, RHIDrawInfo& drawinfo)
     vk_render_pass_begin_info.framebuffer = vk_framebuffer->framebuffer;
     vk_render_pass_begin_info.renderArea.offset = { 0, 0 };
     vk_render_pass_begin_info.renderArea.extent = m_wapChainExtent;
-    VkClearValue clearColor = { {{0.1f, 0.1f, 0.1f, 1.0f}} };
+    vk_render_pass_begin_info.renderArea.extent = m_wapChainExtent;
+    VkClearValue clearColor = { {{0.f, 0.f, 0.f, 0.0f}} };
     vk_render_pass_begin_info.clearValueCount = 1;
     vk_render_pass_begin_info.pClearValues = &clearColor;
 
@@ -894,6 +895,11 @@ bool TourBillon::VulkanRHI::createGraphicsPipeline(const RHIPipelineCreateInfo* 
     viewportState.viewportCount = 1;
     viewportState.scissorCount = 1;
 
+    //Éî¶È²âÊÔ
+    VkPipelineDepthStencilStateCreateInfo depth_info = {};
+    depth_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depth_info.depthCompareOp = VK_COMPARE_OP_ALWAYS;
+
     //¹âÕ¤»¯×´Ì¬
     VkPipelineRasterizationStateCreateInfo rasterizer{};
     rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -969,6 +975,7 @@ bool TourBillon::VulkanRHI::createGraphicsPipeline(const RHIPipelineCreateInfo* 
     pipelineInfo.pRasterizationState = &rasterizer;
     pipelineInfo.pMultisampleState = &multisampling;
     pipelineInfo.pColorBlendState = &colorBlending;
+    pipelineInfo.pDepthStencilState = &depth_info;
     pipelineInfo.pDynamicState = &dynamicState;
     pipelineInfo.layout = vk_pipeline->pipelinelayout;
     pipelineInfo.renderPass = vk_render_pass->renderpass;
