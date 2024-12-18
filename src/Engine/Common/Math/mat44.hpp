@@ -22,6 +22,17 @@ namespace TBMath
 			std::memcpy(m, mat, 16 * sizeof(mat[0][0]));
 		}
 
+		Mat44(Real mat00, Real mat01, Real mat02, Real mat03,
+			  Real mat10, Real mat11, Real mat12, Real mat13, 
+			  Real mat20, Real mat21, Real mat22, Real mat23,
+			  Real mat30, Real mat31, Real mat32, Real mat33 )
+		{
+			m[0][0] = mat00; m[0][1] = mat01; m[0][2] = mat02; m[0][3] = mat03;
+			m[1][0] = mat10; m[1][1] = mat11; m[1][2] = mat12; m[1][3] = mat13;
+			m[2][0] = mat20; m[2][1] = mat21; m[2][2] = mat22; m[2][3] = mat23;
+			m[3][0] = mat30; m[3][1] = mat31; m[3][2] = mat32; m[3][3] = mat33;
+		}
+
 		Mat44 operator*(Mat44 const& rhs)
 		{
 			Mat44 result;

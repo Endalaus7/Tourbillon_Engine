@@ -3,3 +3,6 @@
 build
 bin
 install
+/private_ssh_key.ppk
+/public_ssh_key
+/Tourbillon.bat

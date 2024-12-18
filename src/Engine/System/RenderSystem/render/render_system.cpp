@@ -75,6 +75,7 @@ void TourBillon::RenderSystem::rendLoop(std::function<void(float)> beforeRender,
             drawinfo.drawMeshinfos[index].index_buffer = geometry.indexBuffer;
             drawinfo.drawMeshinfos[index].indices_count = geometry.indexArray.size() * 3;
 
+            index++;
             //m_rhi->DrawMesh(draw_mesh_info);
             //m_rhi->DrawDebug();
         }
