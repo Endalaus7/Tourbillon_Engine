@@ -1,6 +1,8 @@
 @echo off
 setlocal enabledelayedexpansion
 
+mkdir src\Engine\System\RenderSystem\shader\spv
+
 set VK_SDK_EXE=3rdParty\VulkanSDK\Bin\glslangValidator.exe
 set SHADER_DIR=src\Engine\System\RenderSystem\shader
 

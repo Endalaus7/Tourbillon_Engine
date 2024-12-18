@@ -1,7 +1,7 @@
 @echo on
 
-set SDK_DIR=D:/SDK
-set CMAKE_DIR=D:/cmake/cmake-3.23.2-windows-i386/cmake-3.23.2-windows-i386/bin
+set SDK_DIR=./3rdParty
+set CMAKE_DIR=D:/CMake/bin
 
 mkdir build
 mkdir install
