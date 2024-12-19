@@ -46,6 +46,8 @@ namespace TourBillon
 		virtual bool updateDescriptorSets(RHIUpdatesDescriptorSetsInfo& writeinfo) = 0;
 
 
+		virtual void updateBuffer(void* data, RHIBuffer* buffer, RHIDeviceSize offset, RHIDeviceSize size) = 0;
+
 		virtual void createVertexBuffer(void* data, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory) = 0;
 		virtual void createIndexBuffer(void* data, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory) = 0;
 		virtual void createUniformBuffer(void* mapdata, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory) = 0;

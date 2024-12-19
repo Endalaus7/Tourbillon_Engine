@@ -160,7 +160,7 @@ void TourBillon::MainCameraPass::cacheUniformDynamicObject()
 void TourBillon::MainCameraPass::setMainCamera(Entity camera)
 {
 	m_camera = camera;
-	updateUboData();
+	//updateUboData();
 }
 
 void TourBillon::MainCameraPass::updateUboData()
@@ -171,11 +171,14 @@ void TourBillon::MainCameraPass::updateUboData()
 
 	//clear vk resource
 
-
+	
 	if (m_renderCount != ECSManager::Instance()->GetComponentSize<Transfrom>())
 	{
 		dirtyUniformBuffer();
 	}
+	m_rhi->updateBuffer((void*)&m_uniform_buffer_object, m_uniformbuffer->buffer, 0, sizeof(UniformBufferObject));
+	m_rhi->updateBuffer((void*)m_uniform_buffer_dynamic_object_cache.data(), m_uniformdynamicbuffer->buffer, 0, sizeof(UniformBufferDynamicObject) * m_uniform_buffer_dynamic_object_cache.size());
+
 	//updateDescriptorSet();
 }
 

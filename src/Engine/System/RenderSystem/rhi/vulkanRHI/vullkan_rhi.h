@@ -76,7 +76,8 @@ namespace TourBillon
 
         VkShaderModule createShaderModule(const std::vector<char>& code);
 
-        
+        virtual void updateBuffer(void* data, RHIBuffer* buffer, RHIDeviceSize offset, RHIDeviceSize size)override;
+
         virtual void createVertexBuffer(void* srcdata, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory)override;
         virtual void createIndexBuffer(void* srcdata, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory)override;
         virtual void createUniformBuffer(void* mapdata, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory)override;

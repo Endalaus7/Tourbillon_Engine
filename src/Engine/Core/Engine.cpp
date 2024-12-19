@@ -102,7 +102,7 @@ void TourBillon::TBEngine::UpdateBeforeRender(float dt)
 	for (auto entity : trans_components)
 	{
 		auto& camera = ECSManager::Instance()->GetComponent<Camera3D>(entity);
-		//camera.pos.x += dt * 0.1;
+		camera.pos.x += dt * 0.1;
 	}
 	return;
 }

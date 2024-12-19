@@ -1071,6 +1071,13 @@ VkShaderModule TourBillon::VulkanRHI::createShaderModule(const std::vector<char>
     return shader_module;
 }
 
+void TourBillon::VulkanRHI::updateBuffer(void* data, RHIBuffer* buffer, RHIDeviceSize offset, RHIDeviceSize size)
+{
+    VkCommandBuffer commandBuffer = m_commandBuffers[m_current_frame_index].commandbuffer;
+    VulkanBuffer* vk_buffer = dynamic_cast<VulkanBuffer*>(buffer);
+    vkCmdUpdateBuffer(commandBuffer, vk_buffer->buffer, offset, size, data);
+}
+
 void TourBillon::VulkanRHI::createVertexBuffer(void* srcdata, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory)
 {
     VkDeviceSize bufferSize = size;
@@ -1135,7 +1142,7 @@ void TourBillon::VulkanRHI::createUniformBuffer(void* mapdata, RHIDeviceSize siz
     if(buffer_memory)
         vkFreeMemory(m_device, dynamic_cast<VulkanDeviceMemory*>(buffer_memory)->devicememory, nullptr);
 
-    createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, vk_buffer->buffer, vk_buffer_memory->devicememory);
+    createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, vk_buffer->buffer, vk_buffer_memory->devicememory);
 
     void* dstdata;
     vkMapMemory(m_device, vk_buffer_memory->devicememory, 0, bufferSize, 0, &dstdata);
