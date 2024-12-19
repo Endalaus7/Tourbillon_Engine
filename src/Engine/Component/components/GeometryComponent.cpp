@@ -43,5 +43,5 @@ const TBMath::Mat44& TourBillon::Transfrom::GetModelMatrix()
 	TBMath::Mat44 model_mat = TBMath::modelMatrix(translation, rotation, scale);
 	//glm::mat4x4 model = glm::rotate(glm::mat4(1.0f), 0.f, glm::vec3(0.0f, 0.0f, 1.0f));
 
-	return model_mat;
+	return model_mat.transpose();
 }

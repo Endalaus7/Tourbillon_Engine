@@ -316,9 +316,14 @@ void TourBillon::VulkanRHI::DrawMesh(RHIDrawInfo& draw_info, RHIDrawMeshInfo& dr
 
     VulkanPipeline* vk_pipeline = dynamic_cast<VulkanPipeline*>(draw_info.pipeline);
     VulkanDescriptorSet* vk_descriptorset = dynamic_cast<VulkanDescriptorSet*>(draw_info.descriptor_sets[m_current_frame_index]);
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline->pipelinelayout, 0, 1, &vk_descriptorset->descriptor, draw_info.uboDynamicOffsets.size(), draw_info.uboDynamicOffsets.data());
+    for(int i=0;i< draw_info.uboDynamicOffsets.size();i++)
+    {
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline->pipelinelayout, 0, 1, &vk_descriptorset->descriptor, 1, &draw_info.uboDynamicOffsets[i]);
+        vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(draw_mesh_info.indices_count), 1, 0, 0, 0);
+    }
+    //vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline->pipelinelayout, 0, 1, &vk_descriptorset->descriptor, draw_info.uboDynamicOffsets.size(), draw_info.uboDynamicOffsets.data());
 
-	vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(draw_mesh_info.indices_count), 1, 0, 0, 0);
+	
 }
 
 void TourBillon::VulkanRHI::DrawDebug()
@@ -1124,6 +1129,11 @@ void TourBillon::VulkanRHI::createUniformBuffer(void* mapdata, RHIDeviceSize siz
     VkDeviceSize bufferSize = size;
     VulkanBuffer* vk_buffer = new VulkanBuffer;// dynamic_cast<VulkanBuffer*>(buffer);
     VulkanDeviceMemory* vk_buffer_memory = new VulkanDeviceMemory;// dynamic_cast<VulkanDeviceMemory*>(buffer_memory);
+
+    if (buffer)
+        vkDestroyBuffer(m_device, dynamic_cast<VulkanBuffer*>(buffer)->buffer , nullptr);
+    if(buffer_memory)
+        vkFreeMemory(m_device, dynamic_cast<VulkanDeviceMemory*>(buffer_memory)->devicememory, nullptr);
 
     createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, vk_buffer->buffer, vk_buffer_memory->devicememory);
 

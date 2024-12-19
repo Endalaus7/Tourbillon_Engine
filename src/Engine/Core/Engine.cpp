@@ -36,7 +36,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	Camera3D camera;
 	camera.pos = TBMath::Vec3(-2,-2,-2);
 	camera.lookat = TBMath::Vec3(0,0,0);
-	camera.up = TBMath::Vec3(0,0,1);
+	camera.up = TBMath::Vec3(0,0,-1);
 	camera.isOrthographic = false;
 	camera.fovX = 60;
 	camera.fovY = ((float)engine_init_info.window_width / (float)engine_init_info.window_width) * camera.fovX;
@@ -49,7 +49,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	//手动初始化几何体
 	//std::vector<Entity> entities(MAX_ENTITIES - 1);
 	int index = 0;
-	std::vector<Entity> entities(1);
+	std::vector<Entity> entities(8);
 
 	Geometry mesh;
 	Vertex v1(Point3d(-0.5f, -0.5f, 0.f), Point2d(1.0f, 0.0f), ColorRGBA(1.0f, 0.0f, 0.0f, 1.0f));
@@ -72,7 +72,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 		Transfrom trans;
 		trans.rotation = TBMath::Vec3(0, 0, 0);
 		trans.scale = TBMath::Vec3(1, 1, 1);
-		trans.translation = TBMath::Vec3(1.5f * index, 0, 0);
+		trans.translation = TBMath::Vec3(1.5f * (index - 4), 0, 0);
 
 		mesh.vertexBuffer = new RHIBufferResource;
 		mesh.indexBuffer = new RHIBufferResource;
@@ -99,7 +99,11 @@ void TourBillon::TBEngine::run()
 void TourBillon::TBEngine::UpdateBeforeRender(float dt)
 {
 	const auto& trans_components = ECSManager::Instance()->GetComponentEntities<Camera3D>();
-
+	for (auto entity : trans_components)
+	{
+		auto& camera = ECSManager::Instance()->GetComponent<Camera3D>(entity);
+		//camera.pos.x += dt * 0.1;
+	}
 	return;
 }
 

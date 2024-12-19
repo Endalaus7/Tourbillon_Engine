@@ -71,7 +71,7 @@ namespace TourBillon
 	class RHIBufferResource :public RHIResource
 	{
 	public:
-		RHIBuffer* buffer;
-		RHIDeviceMemory* buffermemory;
+		RHIBuffer* buffer = nullptr;
+		RHIDeviceMemory* buffermemory = nullptr;
 	};
 }

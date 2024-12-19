@@ -46,6 +46,8 @@ namespace TourBillon
 
 		void updateUboData();
 		void updateDescriptorSet();
+
+		void dirtyUniformBuffer();
 	private:
 		void cacheUniformObject(const TBMath::Mat44& proj_view_matrix);
 		void cacheUniformDynamicObject();
