@@ -37,10 +37,14 @@ void TourBillon::MainCameraPass::postInitialize()
 
 }
 
+void TourBillon::MainCameraPass::beforeDraw(float dt, RHIDrawInfo& drawinfo)
+{
+	updateUboData();
+	updateDescriptorSet();
+}
+
 void TourBillon::MainCameraPass::drawPass(float dt, RHIDrawInfo& drawinfo)
 {
-	
-
 	drawinfo.pipeline = m_render_pipelines[0];
 	drawinfo.renderpass = m_framebuffer.render_pass;
 	drawinfo.framebuffers = m_framebuffer.framebuffers[drawinfo.windowIndex][m_rhi->getCurrentFrameIndex()];
@@ -60,8 +64,9 @@ void TourBillon::MainCameraPass::drawPass(float dt, RHIDrawInfo& drawinfo)
 	}
 	//drawinfo.descriptor_sets = m_descriptor.descriptor_sets;
 
-	updateUboData(drawinfo);
-	updateDescriptorSet();
+	updateUboBuffer(drawinfo);
+
+	//updateDescriptorSet();
 	drawinfo.drawEvents.addCallback([&](const CEvent&) {
 
 		//for (auto& drawmeshinfo : drawinfo.drawMeshinfos)
@@ -170,7 +175,7 @@ void TourBillon::MainCameraPass::setMainCamera(Entity camera)
 	m_camera = camera;
 }
 
-void TourBillon::MainCameraPass::updateUboData(RHIDrawInfo& info)
+void TourBillon::MainCameraPass::updateUboData()
 {
 	Camera3D& camera = ECSManager::Instance()->GetComponent<Camera3D>(m_camera);
 	cacheUniformObject(camera.GetVPMatrix());
@@ -183,10 +188,14 @@ void TourBillon::MainCameraPass::updateUboData(RHIDrawInfo& info)
 	{
 		dirtyUniformBuffer();
 	}
-	m_rhi->updateBuffer((void*)&m_uniform_buffer_object, info.windowIndex, m_uniformbuffer->buffer, 0, sizeof(UniformBufferObject));
-	m_rhi->updateBuffer((void*)m_uniform_buffer_dynamic_object_cache.data(), info.windowIndex, m_uniformdynamicbuffer->buffer, 0, sizeof(UniformBufferDynamicObject) * m_uniform_buffer_dynamic_object_cache.size());
 
 	//updateDescriptorSet();
+}
+
+void TourBillon::MainCameraPass::updateUboBuffer(RHIDrawInfo& info)
+{
+	m_rhi->updateBuffer((void*)&m_uniform_buffer_object, info.windowIndex, m_uniformbuffer->buffer, 0, sizeof(UniformBufferObject));
+	m_rhi->updateBuffer((void*)m_uniform_buffer_dynamic_object_cache.data(), info.windowIndex, m_uniformdynamicbuffer->buffer, 0, sizeof(UniformBufferDynamicObject) * m_uniform_buffer_dynamic_object_cache.size());
 }
 
 void TourBillon::MainCameraPass::updateDescriptorSet()

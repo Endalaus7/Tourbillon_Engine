@@ -112,7 +112,7 @@ namespace TourBillon
         void            endSingleTimeCommands(RHICommandBuffer* command_buffer, uint32_t windowindex);
 
         void cleanup();
-        virtual void clearSwapchain();
+        virtual void clearSwapchain(uint32_t index);
 
 
     protected:

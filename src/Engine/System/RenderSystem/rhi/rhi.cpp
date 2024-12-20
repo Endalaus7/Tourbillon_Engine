@@ -26,13 +26,3 @@ std::shared_ptr<TourBillon::RHIWindow> TourBillon::RHI_Factory::createRHIWindow(
 	}
 	return std::make_shared<VulkanWindow>();
 }
-
-void TourBillon::RHI::BeforeFrameDraw(float dt)
-{
-	m_Drawing = true;
-}
-
-void TourBillon::RHI::AfterFrameDraw(float dt)
-{
-	m_Drawing = false;
-}

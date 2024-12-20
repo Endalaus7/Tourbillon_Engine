@@ -18,7 +18,9 @@ namespace TourBillon
 	public:
 		virtual void initialize(RenderPipelineInitInfo init_info);
 
+		virtual void BeforeFrameDraw(float dt, RHIDrawInfo& drawinfo);
 		virtual void deferredRender(float dt, RHIDrawInfo& drawinfo);
+		virtual void AfterFrameDraw(float dt, RHIDrawInfo& drawinfo);
 
 		void passUpdateAfterRecreateSwapchain();
 

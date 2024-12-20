@@ -17,6 +17,7 @@ namespace TourBillon
 		virtual void initialize(const RenderPassInitInfo* init_info);
 		virtual void postInitialize();
 
+		virtual void beforeDraw(float dt, RHIDrawInfo& drawinfo)override;
 		virtual void drawPass(float dt, RHIDrawInfo& drawinfo)override;
 
 		virtual void setup_DescriptorSetLayout()override;
@@ -44,7 +45,8 @@ namespace TourBillon
 		//	std::vector<RHIDescriptorSet*> descriptor_sets;
 		//};
 
-		void updateUboData(RHIDrawInfo& info);
+		void updateUboData();
+		void updateUboBuffer(RHIDrawInfo& info);
 		void updateDescriptorSet();
 
 		void dirtyUniformBuffer();

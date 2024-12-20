@@ -96,14 +96,14 @@ void TourBillon::RenderSystem::rendLoop(std::function<void(float)> beforeRender,
         
         float dt = deltaTime.count();
         //¶à´°¿ÚäÖÈ¾
-        m_rhi->BeforeFrameDraw(dt);
+        m_renderPipeline->BeforeFrameDraw(dt, drawinfo);
         for(int winindex=0; winindex <m_rhiWindows.size(); winindex++)
         {
             //drawinfo.windowIndex = winindex;
             drawinfo.windowIndex = winindex;
             m_renderPipeline->deferredRender(dt, drawinfo);
         }
-        m_rhi->AfterFrameDraw(dt);
+        m_renderPipeline->AfterFrameDraw(dt, drawinfo);
         afterRender(dt);
 
         //LOG_DEBUG(std::to_string(1.f / deltaTime.count()));

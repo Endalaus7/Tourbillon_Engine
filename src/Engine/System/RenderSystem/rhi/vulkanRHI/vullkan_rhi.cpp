@@ -88,7 +88,7 @@ void TourBillon::VulkanRHI::recreateSwapchain()
             vkDeviceWaitIdle(m_device);
 
             //vkDestroyImageView();
-            clearSwapchain();
+            clearSwapchain(index);
 
             createSwapchain(index);
             createSwapchainImageViews(index);
@@ -270,8 +270,8 @@ void TourBillon::VulkanRHI::submitDraw(float dt, RHIDrawInfo& drawinfo)
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = 1;
     presentInfo.pWaitSemaphores = &m_renderFinishedSemaphore[drawinfo.windowIndex][m_current_frame_index];
-    presentInfo.swapchainCount = m_swapChain.size();
-    presentInfo.pSwapchains = m_swapChain.data();
+    presentInfo.swapchainCount = 1;
+    presentInfo.pSwapchains = &m_swapChain[drawinfo.windowIndex];
     presentInfo.pImageIndices = &m_current_swapchain_image_index;
 
     VkResult present_result = vkQueuePresentKHR(m_presentQueue, &presentInfo);
@@ -327,11 +327,9 @@ void TourBillon::VulkanRHI::UpdateDraw(float dt, RHIDrawInfo& drawinfo)
 
 void TourBillon::VulkanRHI::BeforeFrameDraw(float dt)
 {
-    RHI::BeforeFrameDraw(dt);
 }
 void TourBillon::VulkanRHI::AfterFrameDraw(float dt)
 {
-    RHI::AfterFrameDraw(dt);
     m_current_frame_index = (m_current_frame_index + 1) % s_max_frames_in_flight;
 }
 
@@ -673,6 +671,7 @@ void TourBillon::VulkanRHI::createDescriptorPool()
     poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
     poolInfo.pPoolSizes = poolSizes.data();
     poolInfo.maxSets = static_cast<uint32_t>(s_max_frames_in_flight);
+    //poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT;
 
     if (vkCreateDescriptorPool(m_device, &poolInfo, nullptr, &m_descriptorPool) != VK_SUCCESS) {
         LOG_WARNING("failed to create descriptor pool!");
@@ -830,6 +829,7 @@ bool TourBillon::VulkanRHI::createDescriptorSetLayout(const RHIDescriptorSetLayo
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = pCreateInfo->bindingCount;
     layoutInfo.pBindings = uboLayoutBinding.data();
+    //layoutInfo.flags = VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT;
 
     if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &vk_layout->layout) != VK_SUCCESS) {
         LOG_ERROR("failed to create descriptor set layout!");
@@ -1508,6 +1508,7 @@ void TourBillon::VulkanRHI::cleanup()
             vkDestroyFence(m_device, m_inFlightFence[iwindow][i], nullptr);
         }
         vkDestroyCommandPool(m_device, m_commandPools[iwindow], nullptr);
+        clearSwapchain(iwindow);
     }
 
 
@@ -1515,7 +1516,7 @@ void TourBillon::VulkanRHI::cleanup()
     
     vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
 	vkDestroyRenderPass(m_device, m_renderPass, nullptr);
-    clearSwapchain();
+    
     vkDestroyDevice(m_device, nullptr);
     vkDestroyInstance(m_instance, nullptr);
     if (m_enable_validation_Layers) {
@@ -1526,24 +1527,18 @@ void TourBillon::VulkanRHI::cleanup()
     glfwTerminate();
 }
 
-void TourBillon::VulkanRHI::clearSwapchain()
+void TourBillon::VulkanRHI::clearSwapchain(uint32_t index)
 {
-	for (auto& imageviews : m_swapChainImageViews)
-	{
-        for(auto imageview: imageviews)
-        {
-            VulkanImageView* vk_imageview = dynamic_cast<VulkanImageView*>(imageview);
-            if (vk_imageview)
-            {
-                vkDestroyImageView(m_device, vk_imageview->imageview, NULL);
-            }
-        }
-	}
-    for (auto& swapChain : m_swapChain)
+    for (auto imageview : m_swapChainImageViews[index])
     {
-        if (swapChain)
-            vkDestroySwapchainKHR(m_device, swapChain, NULL); // also swapchain images
+        VulkanImageView* vk_imageview = dynamic_cast<VulkanImageView*>(imageview);
+        if (vk_imageview)
+        {
+            vkDestroyImageView(m_device, vk_imageview->imageview, NULL);
+        }
     }
+    if (m_swapChain[index])
+        vkDestroySwapchainKHR(m_device, m_swapChain[index], NULL); // also swapchain images
 }
 
 

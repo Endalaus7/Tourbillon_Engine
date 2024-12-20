@@ -37,11 +37,11 @@ namespace TourBillon
 		virtual bool createFrameBuffer(const RHIFramebufferCreateInfo* pCreateInfo, RHIFramebuffer*& pPipeline) = 0;
 		//virtual void UpdateDraw(float dt) = 0;
 
-		virtual void BeforeFrameDraw(float dt);
+		virtual void BeforeFrameDraw(float dt) = 0;
 		virtual bool prepareDraw(float dt, RHIDrawInfo& drawinfo) = 0;
 		virtual void UpdateDraw(float dt, RHIDrawInfo& drawinfo) = 0;
 		virtual void submitDraw(float dt, RHIDrawInfo& drawinfo) = 0;
-		virtual void AfterFrameDraw(float dt);
+		virtual void AfterFrameDraw(float dt) = 0;
 
 		virtual void waitFrameTime(float wait_deltaTime) = 0;
 		virtual RHICommandBuffer* getCommandBuffer(uint32_t windowindex) = 0;
@@ -69,7 +69,6 @@ namespace TourBillon
 		FORCE_INLINE uint32_t getCurrentSwapchainImageIndex(uint32_t index) { return m_current_swapchain_image_index[index]; }
 		FORCE_INLINE uint32_t getWindowNum(uint32_t index) { return m_windowSize; }
 
-		bool m_Drawing = false;//一帧绘制进行中
 		CEvent* drawEvents;
 		uint32_t m_windowSize = 0;//总窗口个数
 	protected:

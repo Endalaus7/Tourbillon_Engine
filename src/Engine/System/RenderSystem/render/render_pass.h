@@ -40,6 +40,7 @@ namespace TourBillon
 		virtual void postInitialize();
 
 		virtual void drawPass(float dt, RHIDrawInfo& drawinfo) = 0;
+		virtual void beforeDraw(float dt, RHIDrawInfo& drawinfo) = 0;
 
 		virtual void setup_DescriptorSetLayout() {}
 		virtual void setup_RenderPass() {}
