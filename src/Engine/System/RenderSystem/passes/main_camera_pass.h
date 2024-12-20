@@ -44,7 +44,7 @@ namespace TourBillon
 		//	std::vector<RHIDescriptorSet*> descriptor_sets;
 		//};
 
-		void updateUboData();
+		void updateUboData(RHIDrawInfo& info);
 		void updateDescriptorSet();
 
 		void dirtyUniformBuffer();

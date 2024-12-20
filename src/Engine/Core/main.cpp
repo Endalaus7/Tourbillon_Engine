@@ -9,8 +9,8 @@
 #include "Components/GeometryComponent.h"
 //#include "render/render_system.h"
 
-const int WIDTH = 800;
-const int HEIGHT = 600;
+const int WIDTH = 500;
+const int HEIGHT = 500;
 
 using namespace TourBillon;
 int main() {
@@ -19,7 +19,8 @@ int main() {
 
     EngineInitInfo engine_init_info;
     TBEngine engine;
-
+    engine_init_info.window_width = WIDTH;
+    engine_init_info.window_height = HEIGHT;
 
 	//test();
 

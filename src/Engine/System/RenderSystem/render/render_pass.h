@@ -24,7 +24,7 @@ namespace TourBillon
 		{
 			int           width;
 			int           height;
-			TBAlignedArray<RHIFramebuffer*> framebuffers;
+			TBVector<TBAlignedArray<RHIFramebuffer*>> framebuffers;//每个窗口一组，一组3个
 			RHIRenderPass* render_pass;
 
 			std::vector<FrameBufferAttachment> attachments;
@@ -51,6 +51,6 @@ namespace TourBillon
 
 		TBVector<Descriptor>      m_descriptor;
 		TBAlignedArray<RHIPipeline*>		m_render_pipelines;
-		Framebuffer     m_framebuffer;
+		Framebuffer     m_framebuffer;//每个窗口一个
 	};
 }

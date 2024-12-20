@@ -5,6 +5,7 @@
 #include "rhi/rhi.h"
 
 #include <vector>
+#include <array>
 #include <optional>
 #include "vullkan_rhi_resource.h"
 
@@ -20,13 +21,17 @@ namespace TourBillon
         virtual void initialize(RHIInitInfo& initialize_info) override;
 
         //virtual void UpdateDraw(float dt);
+        virtual void BeforeFrameDraw(float dt)override;
         virtual bool prepareDraw(float dt, RHIDrawInfo& drawinfo)override;		
         virtual void submitDraw(float dt, RHIDrawInfo& drawinfo)override;
         virtual void UpdateDraw(float dt, RHIDrawInfo& drawinfo)override;
+        virtual void AfterFrameDraw(float dt)override;
+
+        void multiWindowResize(uint32_t windowsize);
 
         virtual void waitFrameTime(float wait_deltaTime);
 
-        virtual RHICommandBuffer* getCommandBuffer()override;
+        virtual RHICommandBuffer* getCommandBuffer(uint32_t windowindex)override;
 
         virtual FORCE_INLINE int getCurrentFrameIndex()override { return m_current_frame_index; }
         virtual FORCE_INLINE int getMaxFrameIndex()override { return s_max_frames_in_flight; }
@@ -63,20 +68,20 @@ namespace TourBillon
         void createDescriptorPool();
         void createSyncPrimitives();
         void createAssetAllocator();
-        void createSwapchain() override;
+        void createSwapchain(uint32_t index) override;
         bool createRenderPass(const RHIRenderPassCreateInfo* pCreateInfo, RHIRenderPass*& pRenderPass)override;
         bool createDescriptorSetLayout(const RHIDescriptorSetLayoutCreateInfo* pCreateInfo, RHIDescriptorSetLayout*& pSetLayout) override;
         bool AllocateDescriptorSets(const RHIDescriptorSetAllocateInfo* pAllocateInfo, RHIDescriptorSet*& pDescriptorSets) override;
         bool updateDescriptorSets(RHIUpdatesDescriptorSetsInfo& writeinfo) override;
-        void createSwapchainImageViews();
+        void createSwapchainImageViews(uint32_t index);
         bool createGraphicsPipeline(const RHIPipelineCreateInfo* pCreateInfo, RHIPipeline*& pPipeline)override;
         bool createFrameBuffer(const RHIFramebufferCreateInfo* pCreateInfo, RHIFramebuffer*& pframeBuffer)override;
-        void createFrameBufferImageAndView();
+        void createFrameBufferImageAndView(uint32_t index);
         bool createSemaphore();
 
         VkShaderModule createShaderModule(const std::vector<char>& code);
 
-        virtual void updateBuffer(void* data, RHIBuffer* buffer, RHIDeviceSize offset, RHIDeviceSize size)override;
+        virtual void updateBuffer(void* data, uint32_t windowindex, RHIBuffer* buffer, RHIDeviceSize offset, RHIDeviceSize size)override;
 
         virtual void createVertexBuffer(void* srcdata, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory)override;
         virtual void createIndexBuffer(void* srcdata, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory)override;
@@ -90,9 +95,9 @@ namespace TourBillon
         bool checkValidationLayerSupport();
         void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
         bool isDeviceSuitable(VkPhysicalDevice device);
-        SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+        SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, uint32_t index);
         VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats);
-        VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities);
+        VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, uint32_t index);
         VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes);
         QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device);
         bool checkDeviceExtensionSupport(VkPhysicalDevice device); 
@@ -103,8 +108,8 @@ namespace TourBillon
         void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
         
 
-        RHICommandBuffer* beginSingleTimeCommands();
-        void            endSingleTimeCommands(RHICommandBuffer* command_buffer);
+        RHICommandBuffer* beginSingleTimeCommands(uint32_t windowindex);
+        void            endSingleTimeCommands(RHICommandBuffer* command_buffer, uint32_t windowindex);
 
         void cleanup();
         virtual void clearSwapchain();
@@ -126,29 +131,28 @@ namespace TourBillon
         uint8_t              m_current_frame_index{ 0 };
         static uint8_t const s_max_frames_in_flight{ 3 };
 
-        VulkanWindow* m_vkWindow;//后续可以改多个window
+        TBVector<VulkanWindow*> m_vkWindows;//后续可以改多个window
         //GLFWwindow* m_window{ nullptr };
         VkInstance m_instance{ nullptr };
         VkPhysicalDevice m_physicalDevice = VK_NULL_HANDLE;
         VkDevice m_device{ nullptr };
         VkQueue m_graphicsQueue;
         VkQueue m_presentQueue;
-        VkSwapchainKHR m_swapChain{ nullptr };
-        VkSurfaceKHR       m_surface{ nullptr };
-        TBAlignedArray<VkImage> m_swapChainImages;
+        TBVector<VkSwapchainKHR> m_swapChain;
+        TBVector<VkSurfaceKHR>       m_surfaces;
+        TBVector<TBAlignedArray<VkImage>> m_swapChainImages;
         
-        VkFormat m_swapChainImageFormat;
-        VkExtent2D m_wapChainExtent;
+        VkFormat m_swapChainImageFormat;//暂时统一
+        TBVector<VkExtent2D> m_wapChainExtent;
         VkRenderPass m_renderPass;
         VkPipeline m_graphicsPipeline;
-        VkCommandPool m_commandPool;
-        VulkanCommandBuffer m_commandBuffers[s_max_frames_in_flight];
+        TBVector<VkCommandPool> m_commandPools;
+        TBVector<std::array<VulkanCommandBuffer, s_max_frames_in_flight>> m_commandBuffers;
         VkDebugUtilsMessengerEXT m_debugMessenger;
-        TBAlignedArray<VkFramebuffer> m_swapChainFramebuffers;
         VkDescriptorPool m_descriptorPool;
 
-        VkSemaphore m_imageAvailableSemaphore[s_max_frames_in_flight];
-        VkSemaphore m_renderFinishedSemaphore[s_max_frames_in_flight];
-        VkFence m_inFlightFence[s_max_frames_in_flight];
+        TBVector<std::array<VkSemaphore, s_max_frames_in_flight>> m_imageAvailableSemaphore;
+        TBVector<std::array<VkSemaphore, s_max_frames_in_flight>> m_renderFinishedSemaphore;
+        TBVector<std::array<VkFence, s_max_frames_in_flight>>     m_inFlightFence;
     };
 }

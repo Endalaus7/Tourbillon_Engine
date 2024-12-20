@@ -22,8 +22,12 @@ TourBillon::VulkanRHI::~VulkanRHI()
 }
 void TourBillon::VulkanRHI::initialize(RHIInitInfo& init_info)
 {
-    
-     m_vkWindow = dynamic_cast<VulkanWindow*>(init_info.window_system.get());
+    m_vkWindows.resize(init_info.window_systems.size());
+    for (int iwindow = 0; iwindow < init_info.window_systems.size(); iwindow++)
+        m_vkWindows[iwindow] = dynamic_cast<VulkanWindow*>(init_info.window_systems[iwindow].get());
+
+    multiWindowResize(m_vkWindows.size());
+
 	//WindowCreateInfo windowInfo = init_info.window_system->getWindowInfo();
     //m_vkWindow = std::make_shared<VulkanWindow>();
     createInstance();
@@ -40,9 +44,12 @@ void TourBillon::VulkanRHI::initialize(RHIInitInfo& init_info)
 
     createSyncPrimitives();//not ready
 
-    createSwapchain();
-
-    createSwapchainImageViews();
+    
+    for (int iwindow = 0; iwindow < m_vkWindows.size(); iwindow++)
+    {
+        createSwapchain(iwindow);
+        createSwapchainImageViews(iwindow);
+    }
 
     createCommandPool();
 
@@ -53,20 +60,41 @@ void TourBillon::VulkanRHI::initialize(RHIInitInfo& init_info)
     createAssetAllocator();//not ready
 }
 
+void TourBillon::VulkanRHI::multiWindowResize(uint32_t windowsize)
+{
+    m_windowSize = windowsize;
+    m_swapChainImageViews.resize(windowsize);
+    m_wapChainExtent.resize(windowsize);
+    m_swapChain.resize(windowsize, nullptr);
+    m_swapChainImages.resize(windowsize);
+
+    m_imageAvailableSemaphore.resize(windowsize);
+    m_renderFinishedSemaphore.resize(windowsize);
+    m_inFlightFence.resize(windowsize);
+
+    m_commandBuffers.resize(windowsize);
+    m_commandPools.resize(windowsize);
+}
+
 void TourBillon::VulkanRHI::recreateSwapchain()
 {
-    bool needrecreate = m_vkWindow->updateWindow();
-
-    if (needrecreate)
+    uint32_t index = 0;
+    for(auto window: m_vkWindows)
     {
-        vkDeviceWaitIdle(m_device);
+        bool needrecreate = window->updateWindow();
 
-        //vkDestroyImageView();
-        clearSwapchain();
+        if (needrecreate)
+        {
+            vkDeviceWaitIdle(m_device);
 
-        createSwapchain();
-        createSwapchainImageViews();
-        createFrameBufferImageAndView();
+            //vkDestroyImageView();
+            clearSwapchain();
+
+            createSwapchain(index);
+            createSwapchainImageViews(index);
+            createFrameBufferImageAndView(index);
+        }
+        index++;
     }
 }
 
@@ -93,20 +121,19 @@ void TourBillon::VulkanRHI::transitionImageLayout(VkCommandBuffer commandBuffer,
         0, 0, nullptr, 0, nullptr, 1, &barrier);
 }
 
-
 bool TourBillon::VulkanRHI::prepareDraw(float dt, RHIDrawInfo& drawinfo)
 {
-    VkResult res_wait_for_fences = vkWaitForFences(m_device, 1, &m_inFlightFence[m_current_frame_index], VK_TRUE, UINT64_MAX);
+    VkResult res_wait_for_fences = vkWaitForFences(m_device, 1, &m_inFlightFence[drawinfo.windowIndex][m_current_frame_index], VK_TRUE, UINT64_MAX);
     if (res_wait_for_fences != VK_SUCCESS)
     {
         LOG_ERROR("vkWaitForFences failed");
     }
 
     uint32_t swapchain_image_index;
-    VkResult acquire_image_result = vkAcquireNextImageKHR(m_device, m_swapChain, UINT64_MAX, m_imageAvailableSemaphore[m_current_frame_index], VK_NULL_HANDLE, &swapchain_image_index);
+    VkResult acquire_image_result = vkAcquireNextImageKHR(m_device, m_swapChain[drawinfo.windowIndex], UINT64_MAX, m_imageAvailableSemaphore[drawinfo.windowIndex][m_current_frame_index], VK_NULL_HANDLE, &swapchain_image_index);
 
     uint32_t imageCount;
-    vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, nullptr); // 获取交换链图像数量
+    vkGetSwapchainImagesKHR(m_device, m_swapChain[drawinfo.windowIndex], &imageCount, nullptr); // 获取交换链图像数量
 
     if (VK_ERROR_OUT_OF_DATE_KHR == acquire_image_result)
     {
@@ -121,28 +148,28 @@ bool TourBillon::VulkanRHI::prepareDraw(float dt, RHIDrawInfo& drawinfo)
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-        VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphore[m_current_frame_index] };
+        VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphore[drawinfo.windowIndex][m_current_frame_index] };
         submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = m_imageAvailableSemaphore;
+        submitInfo.pWaitSemaphores = &m_imageAvailableSemaphore[drawinfo.windowIndex][m_current_frame_index];
         submitInfo.pWaitDstStageMask = waitStages;
         submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &m_commandBuffers[m_current_frame_index].commandbuffer;
+        submitInfo.pCommandBuffers = &m_commandBuffers[drawinfo.windowIndex][m_current_frame_index].commandbuffer;
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 
-        VkResult res_reset_fences = vkResetFences(m_device, 1, &m_inFlightFence[m_current_frame_index]);
+        VkResult res_reset_fences = vkResetFences(m_device, 1, &m_inFlightFence[drawinfo.windowIndex][m_current_frame_index]);
         if (VK_SUCCESS != res_reset_fences)
         {
             LOG_WARNING("vkResetFences failed!");
             return false;
         }
 
-        if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFence[m_current_frame_index]) != VK_SUCCESS) {
+        if (vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, m_inFlightFence[drawinfo.windowIndex][m_current_frame_index]) != VK_SUCCESS) {
             LOG_WARNING("failed to submit draw command buffer!");
             return false;
         }
 
-        m_current_frame_index = (m_current_frame_index + 1) % s_max_frames_in_flight;
+        //m_current_frame_index = (m_current_frame_index + 1) % s_max_frames_in_flight;
         return true;
     }
     else
@@ -163,25 +190,50 @@ bool TourBillon::VulkanRHI::prepareDraw(float dt, RHIDrawInfo& drawinfo)
 
 
 
-    VkResult res_reset_fences = vkResetFences(m_device, 1, &m_inFlightFence[m_current_frame_index]);
+    VkResult res_reset_fences = vkResetFences(m_device, 1, &m_inFlightFence[drawinfo.windowIndex][m_current_frame_index]);
     if (VK_SUCCESS != res_reset_fences)
     {
         LOG_WARNING("_vkResetFences failed!");
         return false;
     }
 
-    vkResetCommandBuffer(m_commandBuffers[m_current_frame_index].commandbuffer, /*VkCommandBufferResetFlagBits*/ 0);
+    vkResetCommandBuffer(m_commandBuffers[drawinfo.windowIndex][m_current_frame_index].commandbuffer, /*VkCommandBufferResetFlagBits*/ 0);
 
-    if (vkBeginCommandBuffer(m_commandBuffers[m_current_frame_index].commandbuffer, &cmd_buffer_beginInfo) != VK_SUCCESS) {
+    if (vkBeginCommandBuffer(m_commandBuffers[drawinfo.windowIndex][m_current_frame_index].commandbuffer, &cmd_buffer_beginInfo) != VK_SUCCESS) {
         LOG_WARNING("failed to begin recording command buffer!");
         return false;
     }
+
+    VkImageMemoryBarrier imageMemoryBarrier = {};
+    imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    imageMemoryBarrier.srcAccessMask = 0;
+    imageMemoryBarrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+    imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+    imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    imageMemoryBarrier.image = m_swapChainImages[drawinfo.windowIndex][m_current_frame_index];
+    imageMemoryBarrier.subresourceRange = {};
+    imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
+    imageMemoryBarrier.subresourceRange.levelCount = 1;
+    imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
+    imageMemoryBarrier.subresourceRange.layerCount = 1;
+    
+    
+    // 插入图像内存屏障
+    vkCmdPipelineBarrier(
+        m_commandBuffers[drawinfo.windowIndex][m_current_frame_index].commandbuffer,
+        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+        0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier
+    );
+
     return false;
 }
 
 void TourBillon::VulkanRHI::submitDraw(float dt, RHIDrawInfo& drawinfo)
 {
-    VkResult res_end_command_buffer = vkEndCommandBuffer(m_commandBuffers[m_current_frame_index].commandbuffer);
+    VkResult res_end_command_buffer = vkEndCommandBuffer(m_commandBuffers[drawinfo.windowIndex][m_current_frame_index].commandbuffer);
     if (VK_SUCCESS != res_end_command_buffer)
     {
         LOG_WARNING("vkEndCommandBuffer failed!");
@@ -191,22 +243,22 @@ void TourBillon::VulkanRHI::submitDraw(float dt, RHIDrawInfo& drawinfo)
     VkSubmitInfo         submit_info = {};
     submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-    VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphore[m_current_frame_index] };
+    VkSemaphore waitSemaphores[] = { m_imageAvailableSemaphore[drawinfo.windowIndex][m_current_frame_index] };
     VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
     submit_info.waitSemaphoreCount = 1;
     submit_info.pWaitSemaphores = waitSemaphores;
     submit_info.pWaitDstStageMask = waitStages;
 
-    VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphore[m_current_frame_index] };
+    VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphore[drawinfo.windowIndex][m_current_frame_index] };
     submit_info.signalSemaphoreCount = 1;
     submit_info.pSignalSemaphores = signalSemaphores;
 
     submit_info.commandBufferCount = 1;
-    submit_info.pCommandBuffers = &m_commandBuffers[m_current_frame_index].commandbuffer;
+    submit_info.pCommandBuffers = &m_commandBuffers[drawinfo.windowIndex][m_current_frame_index].commandbuffer;
 
 
 
-    VkResult res_queue_submit = vkQueueSubmit(m_graphicsQueue, 1, &submit_info, m_inFlightFence[m_current_frame_index]);
+    VkResult res_queue_submit = vkQueueSubmit(m_graphicsQueue, 1, &submit_info, m_inFlightFence[drawinfo.windowIndex][m_current_frame_index]);
     if(res_queue_submit != VK_SUCCESS)
     {
         LOG_ERROR("vkQueueSubmit failed!");
@@ -217,10 +269,9 @@ void TourBillon::VulkanRHI::submitDraw(float dt, RHIDrawInfo& drawinfo)
     VkPresentInfoKHR presentInfo{};
     presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = &m_renderFinishedSemaphore[m_current_frame_index];
-    VkSwapchainKHR swapChains[] = { m_swapChain };
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = swapChains;
+    presentInfo.pWaitSemaphores = &m_renderFinishedSemaphore[drawinfo.windowIndex][m_current_frame_index];
+    presentInfo.swapchainCount = m_swapChain.size();
+    presentInfo.pSwapchains = m_swapChain.data();
     presentInfo.pImageIndices = &m_current_swapchain_image_index;
 
     VkResult present_result = vkQueuePresentKHR(m_presentQueue, &presentInfo);
@@ -238,14 +289,14 @@ void TourBillon::VulkanRHI::submitDraw(float dt, RHIDrawInfo& drawinfo)
             return;
         }
     }
-    m_current_frame_index = (m_current_frame_index + 1) % s_max_frames_in_flight;
+    //m_current_frame_index = (m_current_frame_index + 1) % s_max_frames_in_flight;
     return ;
 }
 void TourBillon::VulkanRHI::UpdateDraw(float dt, RHIDrawInfo& drawinfo)
 {
     
     //recordCommandBuffer(m_commandBuffers[m_current_frame_index].commandbuffer, drawinfo);
-    VkCommandBuffer commandBuffer = m_commandBuffers[m_current_frame_index].commandbuffer;
+    VkCommandBuffer commandBuffer = m_commandBuffers[drawinfo.windowIndex][m_current_frame_index].commandbuffer;
     VulkanRenderPass* vk_renderpass = dynamic_cast<VulkanRenderPass*>(drawinfo.renderpass);
     VulkanFramebuffer* vk_framebuffer = dynamic_cast<VulkanFramebuffer*>(drawinfo.framebuffers);
     VulkanPipeline* vk_pipeline = dynamic_cast<VulkanPipeline*>(drawinfo.pipeline);
@@ -255,9 +306,9 @@ void TourBillon::VulkanRHI::UpdateDraw(float dt, RHIDrawInfo& drawinfo)
     vk_render_pass_begin_info.renderPass = vk_renderpass->renderpass;
     vk_render_pass_begin_info.framebuffer = vk_framebuffer->framebuffer;
     vk_render_pass_begin_info.renderArea.offset = { 0, 0 };
-    vk_render_pass_begin_info.renderArea.extent = m_wapChainExtent;
-    vk_render_pass_begin_info.renderArea.extent = m_wapChainExtent;
-    VkClearValue clearColor = { {{0.f, 0.f, 0.f, 0.0f}} };
+    vk_render_pass_begin_info.renderArea.extent = m_wapChainExtent[drawinfo.windowIndex];
+    vk_render_pass_begin_info.renderArea.extent = m_wapChainExtent[drawinfo.windowIndex];
+    VkClearValue clearColor = { {{0.1f, 0.1f, 0.1f, 1.0f}} };
     vk_render_pass_begin_info.clearValueCount = 1;
     vk_render_pass_begin_info.pClearValues = &clearColor;
 
@@ -274,33 +325,45 @@ void TourBillon::VulkanRHI::UpdateDraw(float dt, RHIDrawInfo& drawinfo)
     vkCmdEndRenderPass(commandBuffer);
 }
 
+void TourBillon::VulkanRHI::BeforeFrameDraw(float dt)
+{
+    RHI::BeforeFrameDraw(dt);
+}
+void TourBillon::VulkanRHI::AfterFrameDraw(float dt)
+{
+    RHI::AfterFrameDraw(dt);
+    m_current_frame_index = (m_current_frame_index + 1) % s_max_frames_in_flight;
+}
+
+
+
 void TourBillon::VulkanRHI::waitFrameTime(float wait_deltaTime)
 {
     if(wait_deltaTime)
     glfwWaitEventsTimeout(wait_deltaTime);
 }
 
-TourBillon::RHICommandBuffer* TourBillon::VulkanRHI::getCommandBuffer()
+TourBillon::RHICommandBuffer* TourBillon::VulkanRHI::getCommandBuffer(uint32_t windowindex)
 {
-    return &m_commandBuffers[m_current_frame_index];
+    return &m_commandBuffers[windowindex][m_current_frame_index];
 }
 
 void TourBillon::VulkanRHI::DrawMesh(RHIDrawInfo& draw_info, RHIDrawMeshInfo& draw_mesh_info)
 {
-	VkCommandBuffer commandBuffer = m_commandBuffers[m_current_frame_index].commandbuffer;
+	VkCommandBuffer commandBuffer = m_commandBuffers[draw_info.windowIndex][m_current_frame_index].commandbuffer;
 
 	VkViewport viewport{};
 	viewport.x = 0.0f;
 	viewport.y = 0.0f;
-	viewport.width = (float)m_wapChainExtent.width;
-	viewport.height = (float)m_wapChainExtent.height;
+	viewport.width = (float)m_wapChainExtent[draw_info.windowIndex].width;
+	viewport.height = (float)m_wapChainExtent[draw_info.windowIndex].height;
 	viewport.minDepth = 0.0f;
 	viewport.maxDepth = 1.0f;
 	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
 	VkRect2D scissor{};
 	scissor.offset = { 0, 0 };
-	scissor.extent = m_wapChainExtent;
+	scissor.extent = m_wapChainExtent[draw_info.windowIndex];
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
     std::vector<VkBuffer> vertexBuffer;
@@ -328,23 +391,23 @@ void TourBillon::VulkanRHI::DrawMesh(RHIDrawInfo& draw_info, RHIDrawMeshInfo& dr
 
 void TourBillon::VulkanRHI::DrawDebug()
 {
-    VkCommandBuffer commandBuffer = m_commandBuffers[m_current_frame_index].commandbuffer;
-
-    VkViewport viewport{};
-    viewport.x = 0.0f;
-    viewport.y = 0.0f;
-    viewport.width = (float)m_wapChainExtent.width;
-    viewport.height = (float)m_wapChainExtent.height;
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
-    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-    VkRect2D scissor{};
-    scissor.offset = { 0, 0 };
-    scissor.extent = m_wapChainExtent;
-    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-    vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+    //VkCommandBuffer commandBuffer = m_commandBuffers[m_current_frame_index].commandbuffer;
+    //
+    //VkViewport viewport{};
+    //viewport.x = 0.0f;
+    //viewport.y = 0.0f;
+    //viewport.width = (float)m_wapChainExtent.width;
+    //viewport.height = (float)m_wapChainExtent.height;
+    //viewport.minDepth = 0.0f;
+    //viewport.maxDepth = 1.0f;
+    //vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+    //
+    //VkRect2D scissor{};
+    //scissor.offset = { 0, 0 };
+    //scissor.extent = m_wapChainExtent;
+    //vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+    //
+    //vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 }
 
 void TourBillon::VulkanRHI::createBuffer(RHIDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
@@ -376,36 +439,39 @@ void TourBillon::VulkanRHI::createBuffer(RHIDeviceSize size, VkBufferUsageFlags 
 
 void TourBillon::VulkanRHI::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
-    VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = m_commandPool;
-    allocInfo.commandBufferCount = 1;
+    for (int iwindow = 0; iwindow < m_windowSize; iwindow++)
+    {
+        VkCommandBufferAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandPool = m_commandPools[iwindow];
+        allocInfo.commandBufferCount = 1;
 
-    VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
+        VkCommandBuffer commandBuffer;
+        vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
 
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        VkCommandBufferBeginInfo beginInfo{};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+        vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-    VkBufferCopy copyRegion{};
-    copyRegion.size = size;
-    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+        VkBufferCopy copyRegion{};
+        copyRegion.size = size;
+        vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-    vkEndCommandBuffer(commandBuffer);
+        vkEndCommandBuffer(commandBuffer);
 
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffer;
 
-    vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(m_graphicsQueue);
+        vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+        vkQueueWaitIdle(m_graphicsQueue);
 
-    vkFreeCommandBuffers(m_device, m_commandPool, 1, &commandBuffer);
+        vkFreeCommandBuffers(m_device, m_commandPools[iwindow], 1, &commandBuffer);
+    }
 
 }
 
@@ -468,9 +534,15 @@ void TourBillon::VulkanRHI::initializeDebugMessenger()
 
 void TourBillon::VulkanRHI::createWindowSurface()
 {
-    if (glfwCreateWindowSurface(m_instance, m_vkWindow->getWindow(), nullptr, &m_surface) != VK_SUCCESS)
+    m_surfaces.resize(m_vkWindows.size(), nullptr);
+    int index = 0;
+    for(auto window:m_vkWindows)
     {
-        LOG_WARNING("failed to create window surface!");
+        if (glfwCreateWindowSurface(m_instance, window->getWindow(), nullptr, &m_surfaces[index]) != VK_SUCCESS)
+        {
+            LOG_WARNING("failed to create window surface!");
+        }
+        index++;
     }
 }
 
@@ -556,9 +628,11 @@ void TourBillon::VulkanRHI::createCommandPool()
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-
-    if (vkCreateCommandPool(m_device, &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS) {
-        LOG_WARNING("Failed to create command pool!");
+    for (int iwindow = 0; iwindow < m_windowSize; iwindow++)
+    {
+        if (vkCreateCommandPool(m_device, &poolInfo, nullptr, &m_commandPools[iwindow]) != VK_SUCCESS) {
+            LOG_WARNING("Failed to create command pool!");
+        }
     }
 }
 
@@ -568,18 +642,21 @@ void TourBillon::VulkanRHI::createCommandBuffers()
 
     VkCommandBuffer tmp_commandbuffer[s_max_frames_in_flight];
 
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.commandPool = m_commandPool;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount = s_max_frames_in_flight;
-
-    if (vkAllocateCommandBuffers(m_device, &allocInfo, tmp_commandbuffer) != VK_SUCCESS) {
-        LOG_WARNING("failed to allocate command buffers!");
-    }
-
-    for (int i = 0; i < s_max_frames_in_flight; i++)
+    for (int iwindow = 0; iwindow < m_windowSize; iwindow++)
     {
-        m_commandBuffers[i].commandbuffer = tmp_commandbuffer[i];
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.commandPool = m_commandPools[iwindow];
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandBufferCount = s_max_frames_in_flight;
+
+        if (vkAllocateCommandBuffers(m_device, &allocInfo, tmp_commandbuffer) != VK_SUCCESS) {
+            LOG_WARNING("failed to allocate command buffers!");
+        }
+    
+        for (int i = 0; i < s_max_frames_in_flight; i++)
+        {
+            m_commandBuffers[iwindow][i].commandbuffer = tmp_commandbuffer[i];
+        }
     }
 }
 
@@ -610,13 +687,13 @@ void TourBillon::VulkanRHI::createAssetAllocator()
 {
 }
 
-void TourBillon::VulkanRHI::createSwapchain()
+void TourBillon::VulkanRHI::createSwapchain(uint32_t index)
 {
-    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(m_physicalDevice);
+    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(m_physicalDevice, index);
 
     VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
     VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-    VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities);
+    VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities,index);
 
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
     if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
@@ -625,7 +702,7 @@ void TourBillon::VulkanRHI::createSwapchain()
 
     VkSwapchainCreateInfoKHR createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = m_surface;
+    createInfo.surface = m_surfaces[index];
 
     createInfo.minImageCount = imageCount;
     createInfo.imageFormat = surfaceFormat.format;
@@ -653,16 +730,16 @@ void TourBillon::VulkanRHI::createSwapchain()
 
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    if (vkCreateSwapchainKHR(m_device, &createInfo, nullptr, &m_swapChain) != VK_SUCCESS) {
+    if (vkCreateSwapchainKHR(m_device, &createInfo, nullptr, &m_swapChain[index]) != VK_SUCCESS) {
         LOG_ERROR("failed to create swap chain!");
     }
 
-    vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, nullptr);
-    m_swapChainImages.apply(imageCount);
-    vkGetSwapchainImagesKHR(m_device, m_swapChain, &imageCount, m_swapChainImages.data());
+    vkGetSwapchainImagesKHR(m_device, m_swapChain[index], &imageCount, nullptr);
+    m_swapChainImages[index].apply(imageCount);
+    vkGetSwapchainImagesKHR(m_device, m_swapChain[index], &imageCount, m_swapChainImages[index].data());
 
     m_swapChainImageFormat = surfaceFormat.format;
-    m_wapChainExtent = extent;
+    m_wapChainExtent[index] = extent;
 }
 
 bool TourBillon::VulkanRHI::createRenderPass(const RHIRenderPassCreateInfo* pCreateInfo, RHIRenderPass*& pRenderPass)
@@ -821,14 +898,14 @@ bool TourBillon::VulkanRHI::updateDescriptorSets(RHIUpdatesDescriptorSetsInfo& w
     return true;
 }
 
-void TourBillon::VulkanRHI::createSwapchainImageViews()
+void TourBillon::VulkanRHI::createSwapchainImageViews(uint32_t index)
 {
-    m_swapChainImageViews.apply(m_swapChainImages.size());
+    m_swapChainImageViews[index].apply(m_swapChainImages[index].size());
 
-    for (size_t i = 0; i < m_swapChainImages.size(); i++) {
+    for (size_t i = 0; i < m_swapChainImages[index].size(); i++) {
         VkImageViewCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        createInfo.image = m_swapChainImages[i];
+        createInfo.image = m_swapChainImages[index][i];
         createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
         createInfo.format = m_swapChainImageFormat;
         createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -847,7 +924,7 @@ void TourBillon::VulkanRHI::createSwapchainImageViews()
         if (vkCreateImageView(m_device, &createInfo, nullptr, &swapChainImageViews->imageview) != VK_SUCCESS) {
             LOG_WARNING("failed to create image views!");
         }
-        m_swapChainImageViews[i] = swapChainImageViews;
+        m_swapChainImageViews[index][i] = swapChainImageViews;
     }
     return;
 }
@@ -1018,8 +1095,8 @@ bool TourBillon::VulkanRHI::createFrameBuffer(const RHIFramebufferCreateInfo* pC
     framebufferInfo.renderPass = vk_render_pass->renderpass;
     framebufferInfo.attachmentCount = attachments.size();
     framebufferInfo.pAttachments = attachments.data();
-    framebufferInfo.width = m_wapChainExtent.width;
-    framebufferInfo.height = m_wapChainExtent.height;
+    framebufferInfo.width = m_wapChainExtent[pCreateInfo->windowIndex].width;
+    framebufferInfo.height = m_wapChainExtent[pCreateInfo->windowIndex].height;
     framebufferInfo.layers = 1;
 
     if (vkCreateFramebuffer(m_device, &framebufferInfo, nullptr, &vk_frame_buffer->framebuffer) != VK_SUCCESS) {
@@ -1030,11 +1107,11 @@ bool TourBillon::VulkanRHI::createFrameBuffer(const RHIFramebufferCreateInfo* pC
 
     return true;
 }
-void TourBillon::VulkanRHI::createFrameBufferImageAndView()
+void TourBillon::VulkanRHI::createFrameBufferImageAndView(uint32_t index)
 {
-    VulkanCommandBuffer* vk_commandBuffer = (VulkanCommandBuffer*)beginSingleTimeCommands();
-    transitionImageLayout(vk_commandBuffer->commandbuffer, m_swapChainImages[m_current_frame_index], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-    endSingleTimeCommands(vk_commandBuffer);
+    VulkanCommandBuffer* vk_commandBuffer = (VulkanCommandBuffer*)beginSingleTimeCommands(index);
+    transitionImageLayout(vk_commandBuffer->commandbuffer, m_swapChainImages[index][m_current_frame_index], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    endSingleTimeCommands(vk_commandBuffer,index);
 
 }
 bool TourBillon::VulkanRHI::createSemaphore()
@@ -1045,12 +1122,17 @@ bool TourBillon::VulkanRHI::createSemaphore()
     VkFenceCreateInfo fenceInfo{};
     fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-    for(int i=0;i< s_max_frames_in_flight;i++)
-    if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_imageAvailableSemaphore[i]) != VK_SUCCESS ||
-        vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphore[i]) != VK_SUCCESS ||
-        vkCreateFence(m_device, &fenceInfo, nullptr, &m_inFlightFence[i]) != VK_SUCCESS) {
-        LOG_WARNING("failed to create synchronization objects for a frame!");
-        return false;
+    for(int iwindow = 0;iwindow<m_windowSize; iwindow++)
+    {
+        for (int i = 0; i < s_max_frames_in_flight; i++)
+        {
+            if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_imageAvailableSemaphore[iwindow][i]) != VK_SUCCESS ||
+                vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphore[iwindow][i]) != VK_SUCCESS ||
+                vkCreateFence(m_device, &fenceInfo, nullptr, &m_inFlightFence[iwindow][i]) != VK_SUCCESS) {
+                LOG_WARNING("failed to create synchronization objects for a frame!");
+                return false;
+            };
+        }
     }
     return true;
 }
@@ -1071,9 +1153,9 @@ VkShaderModule TourBillon::VulkanRHI::createShaderModule(const std::vector<char>
     return shader_module;
 }
 
-void TourBillon::VulkanRHI::updateBuffer(void* data, RHIBuffer* buffer, RHIDeviceSize offset, RHIDeviceSize size)
+void TourBillon::VulkanRHI::updateBuffer(void* data, uint32_t windowindex, RHIBuffer* buffer, RHIDeviceSize offset, RHIDeviceSize size)
 {
-    VkCommandBuffer commandBuffer = m_commandBuffers[m_current_frame_index].commandbuffer;
+    VkCommandBuffer commandBuffer = m_commandBuffers[windowindex][m_current_frame_index].commandbuffer;
     VulkanBuffer* vk_buffer = dynamic_cast<VulkanBuffer*>(buffer);
     vkCmdUpdateBuffer(commandBuffer, vk_buffer->buffer, offset, size, data);
 }
@@ -1199,8 +1281,11 @@ bool TourBillon::VulkanRHI::isDeviceSuitable(VkPhysicalDevice device)
 
     bool swapChainAdequate = false;
     if (extensionsSupported) {
-        SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device);
-        swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+        for (int i = 0; i < m_surfaces.size(); i++)
+        {
+            SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device, i);
+            swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+        }
     }
 
     return indices.isComplete() && extensionsSupported && swapChainAdequate;
@@ -1210,26 +1295,26 @@ bool TourBillon::VulkanRHI::isDeviceSuitable(VkPhysicalDevice device)
     //return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
 }
 
-TourBillon::VulkanRHI::SwapChainSupportDetails TourBillon::VulkanRHI::querySwapChainSupport(VkPhysicalDevice device)
+TourBillon::VulkanRHI::SwapChainSupportDetails TourBillon::VulkanRHI::querySwapChainSupport(VkPhysicalDevice device, uint32_t index)
 {
     SwapChainSupportDetails details;
 
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, m_surface, &details.capabilities);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, m_surfaces[index], &details.capabilities);
 
     uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface, &formatCount, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surfaces[index], &formatCount, nullptr);
 
     if (formatCount != 0) {
         details.formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface, &formatCount, details.formats.data());
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surfaces[index], &formatCount, details.formats.data());
     }
 
     uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface, &presentModeCount, nullptr);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surfaces[index], &presentModeCount, nullptr);
 
     if (presentModeCount != 0) {
         details.presentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface, &presentModeCount, details.presentModes.data());
+        vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surfaces[index], &presentModeCount, details.presentModes.data());
     }
 
     return details;
@@ -1245,7 +1330,7 @@ VkSurfaceFormatKHR TourBillon::VulkanRHI::chooseSwapSurfaceFormat(const std::vec
 
     return availableFormats[0];
 }
-VkExtent2D TourBillon::VulkanRHI::chooseSwapExtent(const VkSurfaceCapabilitiesKHR & capabilities) 
+VkExtent2D TourBillon::VulkanRHI::chooseSwapExtent(const VkSurfaceCapabilitiesKHR & capabilities, uint32_t index)
 {
     if (capabilities.currentExtent.width != UINT32_MAX)
     {
@@ -1253,7 +1338,7 @@ VkExtent2D TourBillon::VulkanRHI::chooseSwapExtent(const VkSurfaceCapabilitiesKH
     }
     else {
         int width, height;
-        glfwGetFramebufferSize(m_vkWindow->getWindow(), &width, &height);
+        glfwGetFramebufferSize(m_vkWindows[index]->getWindow(), &width, &height);
 
         VkExtent2D actualExtent = {
             static_cast<uint32_t>(width),
@@ -1294,8 +1379,16 @@ TourBillon::VulkanRHI::QueueFamilyIndices TourBillon::VulkanRHI::findQueueFamili
             indices.graphicsFamily = i;
         }
 
-        VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &presentSupport);
+        //VkBool32 presentSupport = false;
+
+        VkBool32 presentSupport = true;
+        for (uint32_t iwindow = 0; iwindow < m_windowSize; ++iwindow) {
+            vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surfaces[iwindow], &presentSupport);
+            if (presentSupport == false)
+                break;
+        }
+
+        //vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surfaces[index], &presentSupport);
 
         if (presentSupport) {
             indices.presentFamily = i;
@@ -1366,12 +1459,12 @@ void TourBillon::VulkanRHI::DestroyDebugUtilsMessengerEXT(VkInstance instance, V
     }
 }
 
-TourBillon::RHICommandBuffer* TourBillon::VulkanRHI::beginSingleTimeCommands()
+TourBillon::RHICommandBuffer* TourBillon::VulkanRHI::beginSingleTimeCommands(uint32_t windowindex)
 {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = m_commandPool;
+    allocInfo.commandPool = m_commandPools[windowindex];
     allocInfo.commandBufferCount = 1;
 
     VkCommandBuffer command_buffer;
@@ -1388,8 +1481,7 @@ TourBillon::RHICommandBuffer* TourBillon::VulkanRHI::beginSingleTimeCommands()
     return rhi_command_buffer;
 }
 
-
-void TourBillon::VulkanRHI::endSingleTimeCommands(RHICommandBuffer* command_buffer)
+void TourBillon::VulkanRHI::endSingleTimeCommands(RHICommandBuffer* command_buffer, uint32_t windowindex)
 {
     VkCommandBuffer vk_command_buffer = ((VulkanCommandBuffer*)command_buffer)->commandbuffer;
     vkEndCommandBuffer(vk_command_buffer);
@@ -1402,24 +1494,25 @@ void TourBillon::VulkanRHI::endSingleTimeCommands(RHICommandBuffer* command_buff
     vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle(m_graphicsQueue);
 
-    vkFreeCommandBuffers(m_device, m_commandPool, 1, &vk_command_buffer);
+    vkFreeCommandBuffers(m_device, m_commandPools[windowindex], 1, &vk_command_buffer);
     delete(command_buffer);
 }
 
 void TourBillon::VulkanRHI::cleanup()
 {
-    for (size_t i = 0; i < s_max_frames_in_flight; i++) {
-        vkDestroySemaphore(m_device, m_renderFinishedSemaphore[i], nullptr);
-        vkDestroySemaphore(m_device, m_imageAvailableSemaphore[i], nullptr);
-        vkDestroyFence(m_device, m_inFlightFence[i], nullptr);
+    for (int iwindow = 0; iwindow < m_windowSize; iwindow++)
+    {
+        for (size_t i = 0; i < s_max_frames_in_flight; i++) {
+            vkDestroySemaphore(m_device, m_renderFinishedSemaphore[iwindow][i], nullptr);
+            vkDestroySemaphore(m_device, m_imageAvailableSemaphore[iwindow][i], nullptr);
+            vkDestroyFence(m_device, m_inFlightFence[iwindow][i], nullptr);
+        }
+        vkDestroyCommandPool(m_device, m_commandPools[iwindow], nullptr);
     }
 
-    for (auto framebuffer : m_swapChainFramebuffers) {
-        vkDestroyFramebuffer(m_device, framebuffer, nullptr);
-    }
 
     vkDestroyDescriptorPool(m_device, m_descriptorPool, nullptr);
-    vkDestroyCommandPool(m_device, m_commandPool, nullptr);
+    
     vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
 	vkDestroyRenderPass(m_device, m_renderPass, nullptr);
     clearSwapchain();
@@ -1428,22 +1521,29 @@ void TourBillon::VulkanRHI::cleanup()
     if (m_enable_validation_Layers) {
         DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
     }
-    glfwDestroyWindow(m_vkWindow->getWindow());
+    for(auto window: m_vkWindows)
+    glfwDestroyWindow(window->getWindow());
     glfwTerminate();
 }
 
 void TourBillon::VulkanRHI::clearSwapchain()
 {
-	for (auto imageview : m_swapChainImageViews)
+	for (auto& imageviews : m_swapChainImageViews)
 	{
-        VulkanImageView* vk_imageview = dynamic_cast<VulkanImageView*>(imageview);
-        if(vk_imageview)
-		{
-            vkDestroyImageView(m_device, vk_imageview->imageview, NULL);
+        for(auto imageview: imageviews)
+        {
+            VulkanImageView* vk_imageview = dynamic_cast<VulkanImageView*>(imageview);
+            if (vk_imageview)
+            {
+                vkDestroyImageView(m_device, vk_imageview->imageview, NULL);
+            }
         }
 	}
-    if (m_swapChain)
-	    vkDestroySwapchainKHR(m_device, m_swapChain, NULL); // also swapchain images
+    for (auto& swapChain : m_swapChain)
+    {
+        if (swapChain)
+            vkDestroySwapchainKHR(m_device, swapChain, NULL); // also swapchain images
+    }
 }
 
 

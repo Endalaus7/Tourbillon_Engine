@@ -40,11 +40,6 @@ namespace TourBillon
 			Pass_Count
 		};
 
-	protected:
-		void cacheUniformObject(const TBMath::Mat44& proj_view_matrix);
-
-		void cacheUniformDynamicObject();
-
 	private:
 
 		std::vector<RenderPass*> m_RenderPassList;

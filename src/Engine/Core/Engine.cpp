@@ -34,7 +34,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	//Па»ъ
 	Entity camera_entity = ECSManager::Instance()->CreateEntity();
 	Camera3D camera;
-	camera.pos = TBMath::Vec3(-2,-2,-2);
+	camera.pos = TBMath::Vec3(2,2,-2);
 	camera.lookat = TBMath::Vec3(0,0,0);
 	camera.up = TBMath::Vec3(0,0,-1);
 	camera.isOrthographic = false;
@@ -98,6 +98,8 @@ void TourBillon::TBEngine::run()
 
 void TourBillon::TBEngine::UpdateBeforeRender(float dt)
 {
+	static float rotateCamera = 0;
+	rotateCamera += dt * 0.2;
 	const auto& trans_components = ECSManager::Instance()->GetComponentEntities<Camera3D>();
 	for (auto entity : trans_components)
 	{

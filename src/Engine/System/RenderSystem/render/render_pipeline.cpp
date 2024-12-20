@@ -52,21 +52,6 @@ void TourBillon::RenderPipeline::passUpdateAfterRecreateSwapchain()
 	}
 }
 
-void TourBillon::RenderPipeline::cacheUniformObject(const TBMath::Mat44& proj_view_matrix)
-{
-	//MainCameraPass* main_camera_pass = dynamic_cast<MainCameraPass*>(m_RenderPassList[Pass_MainCamera]);
-	//if (main_camera_pass)
-	//	main_camera_pass->cacheUniformObject(proj_view_matrix);
-	
-}
-
-void TourBillon::RenderPipeline::cacheUniformDynamicObject()
-{
-	//MainCameraPass* main_camera_pass = dynamic_cast<MainCameraPass*>(m_RenderPassList[Pass_MainCamera]);
-	//if (main_camera_pass)
-	//	main_camera_pass->cacheUniformDynamicObject();
-}
-
 void TourBillon::RenderPipeline::SetMainCamera(Entity camera)
 {
 	MainCameraPass* main_camera_pass = dynamic_cast<MainCameraPass*>(m_RenderPassList[Pass_MainCamera]);

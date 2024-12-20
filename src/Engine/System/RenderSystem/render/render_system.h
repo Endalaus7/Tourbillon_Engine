@@ -37,10 +37,12 @@ namespace TourBillon
 
 		void clearBuffers();
 
+		bool shouldClose();
+
 		uint32_t m_frame_rate = 30;
 
 		std::shared_ptr<RHI> m_rhi;
-		std::shared_ptr<RHIWindow> m_rhiWindow;
+		TBVector<std::shared_ptr<RHIWindow>> m_rhiWindows;
 		std::shared_ptr<RenderPipeline> m_renderPipeline;
 
 		

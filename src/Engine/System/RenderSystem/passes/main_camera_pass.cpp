@@ -43,10 +43,12 @@ void TourBillon::MainCameraPass::drawPass(float dt, RHIDrawInfo& drawinfo)
 
 	drawinfo.pipeline = m_render_pipelines[0];
 	drawinfo.renderpass = m_framebuffer.render_pass;
-	drawinfo.framebuffers = m_framebuffer.framebuffers[m_rhi->getCurrentFrameIndex()];
-	for (auto descriptor: m_descriptor)
+	drawinfo.framebuffers = m_framebuffer.framebuffers[drawinfo.windowIndex][m_rhi->getCurrentFrameIndex()];
+
+	drawinfo.descriptor_sets.resize(m_descriptor.size());
+	for (int i=0;i< m_descriptor.size();i++)
 	{
-		drawinfo.descriptor_sets.push_back(descriptor.descriptor_set);
+		drawinfo.descriptor_sets[i] = m_descriptor[i].descriptor_set;
 		
 	}
 
@@ -58,13 +60,13 @@ void TourBillon::MainCameraPass::drawPass(float dt, RHIDrawInfo& drawinfo)
 	}
 	//drawinfo.descriptor_sets = m_descriptor.descriptor_sets;
 
-	updateUboData();
+	updateUboData(drawinfo);
 	updateDescriptorSet();
 	drawinfo.drawEvents.addCallback([&](const CEvent&) {
 
-		for (auto& drawmeshinfo : drawinfo.drawMeshinfos)
+		//for (auto& drawmeshinfo : drawinfo.drawMeshinfos)
 		{
-			m_rhi->DrawMesh(drawinfo, drawmeshinfo);
+			m_rhi->DrawMesh(drawinfo, drawinfo.drawMeshinfos[0]);
 		}
 
 		});
@@ -125,14 +127,20 @@ void TourBillon::MainCameraPass::setup_Pipeline()
 void TourBillon::MainCameraPass::setup_FrameBuffer()
 {
 	RHIFramebufferCreateInfo rhi_framebuffer_init_info;
-	auto swapimageviews = m_rhi->getSwapChainImageViews();
-	m_framebuffer.framebuffers.apply(swapimageviews.size());
-	for (int i = 0; i < swapimageviews.size(); i++)
+	uint32_t windowsize = m_rhi->m_windowSize;
+	m_framebuffer.framebuffers.resize(windowsize);
+	for (int iwin = 0; iwin < windowsize; iwin++)
 	{
-		rhi_framebuffer_init_info.renderpass = m_framebuffer.render_pass;
-		rhi_framebuffer_init_info.imageviews.apply(1);
-		rhi_framebuffer_init_info.imageviews[0] = swapimageviews[i];
-		m_rhi->createFrameBuffer(&rhi_framebuffer_init_info, m_framebuffer.framebuffers[i]);
+		auto swapimageviews = m_rhi->getSwapChainImageViews(iwin);
+		m_framebuffer.framebuffers[iwin].apply(swapimageviews.size());
+		for (int i = 0; i < swapimageviews.size(); i++)
+		{
+			rhi_framebuffer_init_info.renderpass = m_framebuffer.render_pass;
+			rhi_framebuffer_init_info.windowIndex = iwin;
+			rhi_framebuffer_init_info.imageviews.apply(1);
+			rhi_framebuffer_init_info.imageviews[0] = swapimageviews[i];
+			m_rhi->createFrameBuffer(&rhi_framebuffer_init_info, m_framebuffer.framebuffers[iwin][i]);
+		}
 	}
 }
 
@@ -160,10 +168,9 @@ void TourBillon::MainCameraPass::cacheUniformDynamicObject()
 void TourBillon::MainCameraPass::setMainCamera(Entity camera)
 {
 	m_camera = camera;
-	//updateUboData();
 }
 
-void TourBillon::MainCameraPass::updateUboData()
+void TourBillon::MainCameraPass::updateUboData(RHIDrawInfo& info)
 {
 	Camera3D& camera = ECSManager::Instance()->GetComponent<Camera3D>(m_camera);
 	cacheUniformObject(camera.GetVPMatrix());
@@ -176,8 +183,8 @@ void TourBillon::MainCameraPass::updateUboData()
 	{
 		dirtyUniformBuffer();
 	}
-	m_rhi->updateBuffer((void*)&m_uniform_buffer_object, m_uniformbuffer->buffer, 0, sizeof(UniformBufferObject));
-	m_rhi->updateBuffer((void*)m_uniform_buffer_dynamic_object_cache.data(), m_uniformdynamicbuffer->buffer, 0, sizeof(UniformBufferDynamicObject) * m_uniform_buffer_dynamic_object_cache.size());
+	m_rhi->updateBuffer((void*)&m_uniform_buffer_object, info.windowIndex, m_uniformbuffer->buffer, 0, sizeof(UniformBufferObject));
+	m_rhi->updateBuffer((void*)m_uniform_buffer_dynamic_object_cache.data(), info.windowIndex, m_uniformdynamicbuffer->buffer, 0, sizeof(UniformBufferDynamicObject) * m_uniform_buffer_dynamic_object_cache.size());
 
 	//updateDescriptorSet();
 }

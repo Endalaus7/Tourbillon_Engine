@@ -26,14 +26,20 @@ void TourBillon::RenderSystem::initialize(SystemInitInfo* init_info)
     window_create_info.width = render_init_info->window_width;
     window_create_info.height = render_init_info->window_height;
     window_create_info.title = "render window";
-    m_rhiWindow = RHI_Factory::Instance()->createRHIWindow(render_init_info->rhi_type);
-    m_rhiWindow->initialize(window_create_info);
+
+    m_rhiWindows.resize(2);
+
+    for(auto& rhiwindow: m_rhiWindows)
+    {
+        rhiwindow = RHI_Factory::Instance()->createRHIWindow(render_init_info->rhi_type);
+        rhiwindow->initialize(window_create_info);
+    }
 
     m_frame_rate = render_init_info->frame_rate;
 
 
     RHIInitInfo rhi_init_info;
-    rhi_init_info.window_system = m_rhiWindow;
+    rhi_init_info.window_systems = m_rhiWindows;
     m_rhi = RHI_Factory::Instance()->createRHI(render_init_info->rhi_type);
     m_rhi->initialize(rhi_init_info);
 
@@ -47,7 +53,7 @@ void TourBillon::RenderSystem::initialize(SystemInitInfo* init_info)
 void TourBillon::RenderSystem::rendLoop(std::function<void(float)> beforeRender, std::function<void(float)> afterRender)
 {
     std::chrono::steady_clock::time_point lastTime = std::chrono::steady_clock::now();
-    while (!m_rhiWindow->shouldClose())
+    while (!shouldClose())
     {
         
         // 获取当前时间
@@ -59,11 +65,14 @@ void TourBillon::RenderSystem::rendLoop(std::function<void(float)> beforeRender,
 
         beforeRender(deltaTime.count());
 
-        m_rhiWindow->pollEvents();
+        for (auto rhiwindow : m_rhiWindows)
+            rhiwindow->pollEvents();
         //m_rhi->UpdateDraw(deltaTime.count());
 
 		RHIDrawInfo drawinfo;
 
+        //此处需要修改
+        //每种mesh只需要在meshinfo中添加一次
         const auto& geo_components = ECSManager::Instance()->GetComponentEntities<Geometry>();
         drawinfo.drawMeshinfos.resize(geo_components.size());
         uint32_t index = 0;
@@ -84,9 +93,18 @@ void TourBillon::RenderSystem::rendLoop(std::function<void(float)> beforeRender,
         //    
         //    }
         //);
-        m_renderPipeline->deferredRender(deltaTime.count(), drawinfo);
-
-        afterRender(deltaTime.count());
+        
+        float dt = deltaTime.count();
+        //多窗口渲染
+        m_rhi->BeforeFrameDraw(dt);
+        for(int winindex=0; winindex <m_rhiWindows.size(); winindex++)
+        {
+            //drawinfo.windowIndex = winindex;
+            drawinfo.windowIndex = winindex;
+            m_renderPipeline->deferredRender(dt, drawinfo);
+        }
+        m_rhi->AfterFrameDraw(dt);
+        afterRender(dt);
 
         //LOG_DEBUG(std::to_string(1.f / deltaTime.count()));
         //m_rhi->waitFrameTime(1.f / m_frame_rate);
@@ -96,7 +114,8 @@ void TourBillon::RenderSystem::rendLoop(std::function<void(float)> beforeRender,
 void TourBillon::RenderSystem::clear()
 {
     m_rhi.reset();
-    m_rhiWindow.reset();
+    for(auto rhiwindow: m_rhiWindows)
+        rhiwindow.reset();
     clearBuffers();
     m_vertex_cache.clear();
 }
@@ -119,4 +138,14 @@ void TourBillon::RenderSystem::clearBuffers()
 {
 	RHIResourceManager::Instance()->Release(m_vertexbuffer, 5);
 	m_vertexbuffer = nullptr;
+}
+
+bool TourBillon::RenderSystem::shouldClose()
+{
+    for (auto rhiwindow : m_rhiWindows)
+    {
+        if (!rhiwindow->shouldClose())
+            return false;
+    }
+    return true;
 }
