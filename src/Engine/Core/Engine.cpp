@@ -2,6 +2,7 @@
 #include "ECSManager.h"
 #include "Components/CameraComponent.h"
 #include "Components/GeometryComponent.h"
+#include "Components/RenderableComponent.h"
 
 #include "RenderSystem/render/render_system.h"
 #include "rhi/rhi_source.h"
@@ -49,21 +50,27 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	//手动初始化几何体
 	//std::vector<Entity> entities(MAX_ENTITIES - 1);
 	int index = 0;
-	std::vector<Entity> entities(8);
+	std::vector<Entity> entities(20);
 
-	Geometry mesh;
+	std::shared_ptr<Geometry> mesh = std::make_shared<Geometry>();
 	Vertex v1(Point3d(-0.5f, -0.5f, 0.f), Point2d(1.0f, 0.0f), ColorRGBA(1.0f, 0.0f, 0.0f, 1.0f));
 	Vertex v2(Point3d(0.5f, -0.5f, 0.f), Point2d(1.0f, 0.0f), ColorRGBA(0.0f, 1.0f, 0.0f, 1.0f));
 	Vertex v3(Point3d(0.5f, 0.5f, 0.f), Point2d(1.0f, 0.0f), ColorRGBA(0.0f, 0.0f, 1.0f, 1.0f));
 	Vertex v4(Point3d(-0.5f, 0.5f, 0.f), Point2d(1.0f, 0.0f), ColorRGBA(0.0f, 0.0f, 0.0f, 1.0f));
 	Index_3P i1(0, 1, 2);
 	Index_3P i2(2, 3, 0);
-	mesh.vertexArray.push_back(v1);
-	mesh.vertexArray.push_back(v2);
-	mesh.vertexArray.push_back(v3);
-	mesh.vertexArray.push_back(v4);
-	mesh.indexArray.push_back(i1);
-	mesh.indexArray.push_back(i2);
+	mesh->vertexArray.push_back(v1);
+	mesh->vertexArray.push_back(v2);
+	mesh->vertexArray.push_back(v3);
+	mesh->vertexArray.push_back(v4);
+	mesh->indexArray.push_back(i1);
+	mesh->indexArray.push_back(i2);
+	mesh->vertexBuffer = new RHIBufferResource;
+	mesh->indexBuffer = new RHIBufferResource;
+	m_renderSystem->loadMeshBuffer(*mesh);
+	Entity mesh_entity = ECSManager::Instance()->CreateEntity();
+	ECSManager::Instance()->AddComponent<Geometry>(mesh_entity, *mesh);
+	
 
 	for (auto& entity : entities)
 	{
@@ -74,13 +81,10 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 		trans.scale = TBMath::Vec3(1, 1, 1);
 		trans.translation = TBMath::Vec3(1.5f * (index - 4), 0, 0);
 
-		mesh.vertexBuffer = new RHIBufferResource;
-		mesh.indexBuffer = new RHIBufferResource;
-		
+		Renderable renderObj;
+		renderObj.mesh = mesh;
 
-		m_renderSystem->loadMeshBuffer(mesh);
-
-		ECSManager::Instance()->AddComponent<Geometry>(entity, mesh);
+		ECSManager::Instance()->AddComponent<Renderable>(entity, renderObj);
 		ECSManager::Instance()->AddComponent<Transfrom>(entity, trans);
 		index++;
 	}

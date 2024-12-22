@@ -3,7 +3,7 @@
 #include <queue>
 #include "System.h"
 #include "../rhi/rhi.h"
-#include "../Component/components/GeometryComponent.h"
+#include "../Component/components/RenderableComponent.h"
 
 #include "../rhi/rhi_source.h"
 

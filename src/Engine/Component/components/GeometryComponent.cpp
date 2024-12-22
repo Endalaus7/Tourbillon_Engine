@@ -2,8 +2,8 @@
 #include "Math/trans.hpp"
 
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+//#include <glm/glm.hpp>
+//#include <glm/gtc/matrix_transform.hpp>
 void TourBillon::test()
 {
 	//if (IsReflected_t<TestComponent>)

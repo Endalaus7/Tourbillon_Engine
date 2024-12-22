@@ -27,7 +27,7 @@ void TourBillon::RenderSystem::initialize(SystemInitInfo* init_info)
     window_create_info.height = render_init_info->window_height;
     window_create_info.title = "render window";
 
-    m_rhiWindows.resize(2);
+    m_rhiWindows.resize(1);
 
     for(auto& rhiwindow: m_rhiWindows)
     {
