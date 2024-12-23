@@ -7,7 +7,7 @@ TourBillon::EntityManager::EntityManager()
 
 void TourBillon::EntityManager::Init()
 {
-	for (Entity entity = 0; entity < MAX_ENTITIES; ++entity)
+	for (Entity entity = 0; entity <= MAX_ENTITIES; ++entity)
 	{
 		m_entityPool.push(entity);
 	}

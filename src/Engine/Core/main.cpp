@@ -21,6 +21,7 @@ int main() {
     TBEngine engine;
     engine_init_info.window_width = WIDTH;
     engine_init_info.window_height = HEIGHT;
+    engine_init_info.window_num = 1;
 
 	//test();
 

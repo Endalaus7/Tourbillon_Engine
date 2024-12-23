@@ -18,7 +18,7 @@ namespace TourBillon
 		{
 			if (!std::is_base_of<Component, T>::value)
 			{
-				LOG_WARNING("Register is Not component class");
+				LOG_ERROR("Register is Not component class");
 				return;
 			}
 

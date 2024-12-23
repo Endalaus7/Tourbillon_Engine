@@ -8,7 +8,7 @@
 #include "ECSManager.h"
 
 #include <chrono>
-
+#include <omp.h>
 
 TourBillon::RenderSystem::~RenderSystem()
 {
@@ -27,7 +27,7 @@ void TourBillon::RenderSystem::initialize(SystemInitInfo* init_info)
     window_create_info.height = render_init_info->window_height;
     window_create_info.title = "render window";
 
-    m_rhiWindows.resize(1);
+    m_rhiWindows.resize(render_init_info->window_num);
 
     for(auto& rhiwindow: m_rhiWindows)
     {
@@ -97,7 +97,8 @@ void TourBillon::RenderSystem::rendLoop(std::function<void(float)> beforeRender,
         float dt = deltaTime.count();
         //¶à´°¿ÚäÖÈ¾
         m_renderPipeline->BeforeFrameDraw(dt, drawinfo);
-        for(int winindex=0; winindex <m_rhiWindows.size(); winindex++)
+        #pragma omp parallel for
+        for(int winindex = 0; winindex <m_rhiWindows.size(); winindex++)
         {
             //drawinfo.windowIndex = winindex;
             drawinfo.windowIndex = winindex;
@@ -129,9 +130,9 @@ void TourBillon::RenderSystem::loadMeshBuffer(Geometry& mesh)
     m_rhi->createIndexBuffer((void*)mesh.indexArray.data(), indexbufferSize, mesh.indexBuffer->buffer, mesh.indexBuffer->buffermemory);
 }
 
-void TourBillon::RenderSystem::SetMainCamera(Entity camera)
+void TourBillon::RenderSystem::SetMainCamera(uint32_t windowindex, Entity camera)
 {
-    m_renderPipeline->SetMainCamera(camera);
+    m_renderPipeline->SetMainCamera(windowindex, camera);
 }
 
 void TourBillon::RenderSystem::clearBuffers()

@@ -123,7 +123,7 @@ void TourBillon::VulkanRHI::transitionImageLayout(VkCommandBuffer commandBuffer,
 
 bool TourBillon::VulkanRHI::prepareDraw(float dt, RHIDrawInfo& drawinfo)
 {
-    VkResult res_wait_for_fences = vkWaitForFences(m_device, 1, &m_inFlightFence[drawinfo.windowIndex][m_current_frame_index], VK_TRUE, UINT64_MAX);
+    VkResult res_wait_for_fences = vkWaitForFences(m_device, 1, &m_inFlightFence[drawinfo.windowIndex][m_current_frame_index], VK_FALSE, UINT64_MAX);
     if (res_wait_for_fences != VK_SUCCESS)
     {
         LOG_ERROR("vkWaitForFences failed");
@@ -147,15 +147,15 @@ bool TourBillon::VulkanRHI::prepareDraw(float dt, RHIDrawInfo& drawinfo)
             drawinfo.preEvents.trigger();
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-        VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphore[drawinfo.windowIndex][m_current_frame_index] };
+        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT };
+        //VkSemaphore signalSemaphores[] = { m_renderFinishedSemaphore[drawinfo.windowIndex][m_current_frame_index] };
         submitInfo.waitSemaphoreCount = 1;
         submitInfo.pWaitSemaphores = &m_imageAvailableSemaphore[drawinfo.windowIndex][m_current_frame_index];
         submitInfo.pWaitDstStageMask = waitStages;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &m_commandBuffers[drawinfo.windowIndex][m_current_frame_index].commandbuffer;
-        submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = signalSemaphores;
+        submitInfo.commandBufferCount = 0;
+        submitInfo.pCommandBuffers = NULL;
+        submitInfo.signalSemaphoreCount = 0;
+        submitInfo.pSignalSemaphores = NULL;
 
         VkResult res_reset_fences = vkResetFences(m_device, 1, &m_inFlightFence[drawinfo.windowIndex][m_current_frame_index]);
         if (VK_SUCCESS != res_reset_fences)
@@ -278,8 +278,6 @@ void TourBillon::VulkanRHI::submitDraw(float dt, RHIDrawInfo& drawinfo)
     if (VK_ERROR_OUT_OF_DATE_KHR == present_result || VK_SUBOPTIMAL_KHR == present_result)
     {
         recreateSwapchain();
-        
-        drawinfo.subEvents.trigger();
     }
     else
     {
@@ -829,7 +827,7 @@ bool TourBillon::VulkanRHI::createDescriptorSetLayout(const RHIDescriptorSetLayo
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     layoutInfo.bindingCount = pCreateInfo->bindingCount;
     layoutInfo.pBindings = uboLayoutBinding.data();
-    //layoutInfo.flags = VK_DESCRIPTOR_BINDING_UPDATE_UNUSED_WHILE_PENDING_BIT;
+    //layoutInfo.flags = VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT;
 
     if (vkCreateDescriptorSetLayout(m_device, &layoutInfo, nullptr, &vk_layout->layout) != VK_SUCCESS) {
         LOG_ERROR("failed to create descriptor set layout!");
@@ -884,7 +882,7 @@ bool TourBillon::VulkanRHI::updateDescriptorSets(RHIUpdatesDescriptorSetsInfo& w
 
         descriptorWrite[index].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrite[index].dstSet = vk_descriptor->descriptor;
-        descriptorWrite[index].dstBinding = index;
+        descriptorWrite[index].dstBinding = itr.bindingindex;
         descriptorWrite[index].dstArrayElement = 0;
         descriptorWrite[index].descriptorType = static_cast<VkDescriptorType>(itr.descriptorType);
         descriptorWrite[index].descriptorCount = 1;
@@ -1153,11 +1151,17 @@ VkShaderModule TourBillon::VulkanRHI::createShaderModule(const std::vector<char>
     return shader_module;
 }
 
-void TourBillon::VulkanRHI::updateBuffer(void* data, uint32_t windowindex, RHIBuffer* buffer, RHIDeviceSize offset, RHIDeviceSize size)
+void TourBillon::VulkanRHI::updateBuffer(void* data, uint32_t windowindex, RHIBuffer* buffer, RHIDeviceSize totaloffset, RHIDeviceSize totalsize)
 {
     VkCommandBuffer commandBuffer = m_commandBuffers[windowindex][m_current_frame_index].commandbuffer;
     VulkanBuffer* vk_buffer = dynamic_cast<VulkanBuffer*>(buffer);
-    vkCmdUpdateBuffer(commandBuffer, vk_buffer->buffer, offset, size, data);
+    size_t chunkSize = 65536;
+    for (size_t ioffset = 0; ioffset < totalsize - totaloffset; ioffset += chunkSize) {
+        size_t isize = std::min(chunkSize, totalsize - totaloffset - ioffset);
+        vkCmdUpdateBuffer(commandBuffer, vk_buffer->buffer, ioffset, isize, data);
+    }
+    
+    //vkCmdUpdateBuffer(commandBuffer, vk_buffer->buffer, offset, size, data);
 }
 
 void TourBillon::VulkanRHI::createVertexBuffer(void* srcdata, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory)
@@ -1539,6 +1543,13 @@ void TourBillon::VulkanRHI::clearSwapchain(uint32_t index)
     }
     if (m_swapChain[index])
         vkDestroySwapchainKHR(m_device, m_swapChain[index], NULL); // also swapchain images
+}
+
+void TourBillon::VulkanRHI::destroyFramebuffer(RHIFramebuffer* framebuffer)
+{
+    VulkanFramebuffer* vk_frame_buffer = dynamic_cast<VulkanFramebuffer*>(framebuffer);
+    if(vk_frame_buffer)
+        vkDestroyFramebuffer(m_device, vk_frame_buffer->framebuffer, NULL);
 }
 
 

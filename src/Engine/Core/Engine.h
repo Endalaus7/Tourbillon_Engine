@@ -8,6 +8,7 @@ namespace TourBillon
 	struct EngineInitInfo{
 		uint32_t window_width = 500;
 		uint32_t window_height = 500;
+		uint32_t window_num = 1;
 	};
 	class RenderSystem;
 	class TBEngine

@@ -112,8 +112,8 @@ namespace TourBillon
         void            endSingleTimeCommands(RHICommandBuffer* command_buffer, uint32_t windowindex);
 
         void cleanup();
-        virtual void clearSwapchain(uint32_t index);
-
+        virtual void clearSwapchain(uint32_t windowindex);
+        virtual void destroyFramebuffer(RHIFramebuffer* framebuffer)override;
 
     protected:
         void createBuffer(RHIDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory);

@@ -24,7 +24,7 @@ namespace TourBillon
 		{
 			int           width;
 			int           height;
-			TBVector<TBAlignedArray<RHIFramebuffer*>> framebuffers;//每个窗口一组，一组3个
+			TBVector<TBAlignedArray<RHIFramebuffer*>> framebuffers;//1维窗口，2维交换帧
 			RHIRenderPass* render_pass;
 
 			std::vector<FrameBufferAttachment> attachments;
@@ -38,6 +38,7 @@ namespace TourBillon
 
 		virtual void initialize(const RenderPassInitInfo* init_info);
 		virtual void postInitialize();
+		virtual void updateDescriptorSets(float dt, RHIDrawInfo& drawinfo) = 0;
 
 		virtual void drawPass(float dt, RHIDrawInfo& drawinfo) = 0;
 		virtual void beforeDraw(float dt, RHIDrawInfo& drawinfo) = 0;
@@ -46,6 +47,8 @@ namespace TourBillon
 		virtual void setup_RenderPass() {}
 		virtual void setup_Pipeline() {}
 		virtual void setup_FrameBuffer() {}
+
+		virtual void destroyFramebuffer() {}
 	protected:
 		std::shared_ptr<RHI>                m_rhi;
 		//std::shared_ptr<RenderResource> m_render_resource;

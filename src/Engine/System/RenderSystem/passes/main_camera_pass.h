@@ -19,15 +19,16 @@ namespace TourBillon
 
 		virtual void beforeDraw(float dt, RHIDrawInfo& drawinfo)override;
 		virtual void drawPass(float dt, RHIDrawInfo& drawinfo)override;
+		virtual void updateDescriptorSets(float dt, RHIDrawInfo& drawinfo)override;
 
 		virtual void setup_DescriptorSetLayout()override;
 		virtual void setup_RenderPass()override;
 		virtual void setup_Pipeline()override;
 		virtual void setup_FrameBuffer()override;
 
-		
+		virtual void destroyFramebuffer()override;
 
-		void setMainCamera(Entity camera);
+		void setMainCamera(uint32_t windowindex, Entity camera);
 
 		struct UniformBufferObject
 		{
@@ -46,6 +47,7 @@ namespace TourBillon
 		//};
 
 		void updateUboData();
+		void updateUniformUboData(uint32_t windowindex);
 		void updateUboBuffer(RHIDrawInfo& info);
 		void updateDescriptorSet();
 
@@ -57,7 +59,7 @@ namespace TourBillon
 		void setupDescriptorSet();
 
 		//Descriptor m_descriptor;
-		Entity m_camera;
+		std::vector<Entity> m_camera;
 
 		uint32_t m_renderCount = 0;//render entities number
 

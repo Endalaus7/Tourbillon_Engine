@@ -46,6 +46,7 @@ namespace TourBillon
 		virtual void waitFrameTime(float wait_deltaTime) = 0;
 		virtual RHICommandBuffer* getCommandBuffer(uint32_t windowindex) = 0;
 		virtual void recreateSwapchain() = 0;
+		virtual void destroyFramebuffer(RHIFramebuffer* framebuffer) = 0;
 		virtual bool AllocateDescriptorSets(const RHIDescriptorSetAllocateInfo* pAllocateInfo, RHIDescriptorSet*& pDescriptorSets) = 0;
 		virtual bool updateDescriptorSets(RHIUpdatesDescriptorSetsInfo& writeinfo) = 0;
 

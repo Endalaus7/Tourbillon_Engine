@@ -18,6 +18,7 @@ namespace TourBillon
 		uint32_t frame_rate = 60;
 		uint32_t window_width = 500;
 		uint32_t window_height = 500;
+		uint32_t window_num = 1;
 		//std::shared_ptr<RenderWindow> window_system;
 		//std::shared_ptr<DebugDrawManager> debugdraw_manager;
 	};
@@ -33,7 +34,7 @@ namespace TourBillon
 
 		void loadMeshBuffer(Geometry& mesh);
 
-		void SetMainCamera(Entity camera);
+		void SetMainCamera(uint32_t windowindex, Entity camera);
 
 		void clearBuffers();
 

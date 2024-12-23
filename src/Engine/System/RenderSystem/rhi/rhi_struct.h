@@ -75,6 +75,7 @@ namespace TourBillon
 	};
 	struct RHIWriteDescriptorSetInfo
 	{
+		uint32_t bindingindex;
 		RHIBuffer* buffer;
 		RHIDescriptorSet* descriptorset;
 		RHIDeviceSize range;
@@ -132,7 +133,6 @@ namespace TourBillon
 		RHIRenderPass* renderpass;
 		RHIFramebuffer* framebuffers;
 		CEvent preEvents;
-		CEvent subEvents;
 		CEvent drawEvents;
 		TBVector<RHIDescriptorSet*> descriptor_sets;
 		TBVector<uint32_t> uboDynamicOffsets;

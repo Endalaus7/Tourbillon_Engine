@@ -13,9 +13,10 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	ECSManager::Instance()->initialize(ecs_manager_init_info);
 
 
-	ECSManager::Instance()->RegisterComponent<Geometry>();
+	ECSManager::Instance()->RegisterComponent<Geometry>();//删除
 	ECSManager::Instance()->RegisterComponent<Camera3D>();
 	ECSManager::Instance()->RegisterComponent<Transfrom>();
+	ECSManager::Instance()->RegisterComponent<Renderable>();
 
 	m_renderSystem = ECSManager::Instance()->mSystemManager->RegisterSystem<RenderSystem>();
 	{
@@ -29,28 +30,41 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	render_system_init_info.frame_rate = 60;
 	render_system_init_info.window_width = engine_init_info.window_width;
 	render_system_init_info.window_height = engine_init_info.window_height;
+	render_system_init_info.window_num = engine_init_info.window_num;
 	m_renderSystem->initialize(&render_system_init_info);
 
 
 	//相机
 	Entity camera_entity = ECSManager::Instance()->CreateEntity();
-	Camera3D camera;
-	camera.pos = TBMath::Vec3(2,2,-2);
-	camera.lookat = TBMath::Vec3(0,0,0);
-	camera.up = TBMath::Vec3(0,0,-1);
-	camera.isOrthographic = false;
-	camera.fovX = 60;
-	camera.fovY = ((float)engine_init_info.window_width / (float)engine_init_info.window_width) * camera.fovX;
-	camera.nearClip = 0.1f;
-	camera.farClip = 10.0f;
-	ECSManager::Instance()->AddComponent<Camera3D>(camera_entity, camera);
-	m_renderSystem->SetMainCamera(camera_entity);
+	Camera3D camera0;
+	camera0.pos = TBMath::Vec3(2,2,-2);
+	camera0.lookat = TBMath::Vec3(0,0,0);
+	camera0.up = TBMath::Vec3(0,0,-1);
+	camera0.isOrthographic = false;
+	camera0.fovX = 60;
+	camera0.fovY = ((float)engine_init_info.window_width / (float)engine_init_info.window_width) * camera0.fovX;
+	camera0.nearClip = 0.1f;
+	camera0.farClip = 10.0f;
+	ECSManager::Instance()->AddComponent<Camera3D>(camera_entity, camera0);
+	m_renderSystem->SetMainCamera(0, camera_entity);
 
+	camera_entity = ECSManager::Instance()->CreateEntity();
+	Camera3D camera1;
+	camera1.pos = TBMath::Vec3(2, 2, -2);
+	camera1.lookat = TBMath::Vec3(0, 0, 0);
+	camera1.up = TBMath::Vec3(0, 0, -1);
+	camera1.isOrthographic = false;
+	camera1.fovX = 60;
+	camera1.fovY = ((float)engine_init_info.window_width / (float)engine_init_info.window_width) * camera1.fovX;
+	camera1.nearClip = 0.1f;
+	camera1.farClip = 10.0f;
+	ECSManager::Instance()->AddComponent<Camera3D>(camera_entity, camera1);
+	m_renderSystem->SetMainCamera(1, camera_entity);
 	
 	//手动初始化几何体
 	//std::vector<Entity> entities(MAX_ENTITIES - 1);
 	int index = 0;
-	std::vector<Entity> entities(20);
+	std::vector<Entity> entities(10000);
 
 	std::shared_ptr<Geometry> mesh = std::make_shared<Geometry>();
 	Vertex v1(Point3d(-0.5f, -0.5f, 0.f), Point2d(1.0f, 0.0f), ColorRGBA(1.0f, 0.0f, 0.0f, 1.0f));
@@ -84,8 +98,9 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 		Renderable renderObj;
 		renderObj.mesh = mesh;
 
-		ECSManager::Instance()->AddComponent<Renderable>(entity, renderObj);
+		
 		ECSManager::Instance()->AddComponent<Transfrom>(entity, trans);
+		ECSManager::Instance()->AddComponent<Renderable>(entity, renderObj);
 		index++;
 	}
 }
@@ -104,11 +119,16 @@ void TourBillon::TBEngine::UpdateBeforeRender(float dt)
 {
 	static float rotateCamera = 0;
 	rotateCamera += dt * 0.2;
-	const auto& trans_components = ECSManager::Instance()->GetComponentEntities<Camera3D>();
-	for (auto entity : trans_components)
+	//uint32_t cameraindex = 0;
+	const auto& camera_components = ECSManager::Instance()->GetComponentEntities<Camera3D>();
+	for (auto entity : camera_components)
 	{
 		auto& camera = ECSManager::Instance()->GetComponent<Camera3D>(entity);
-		camera.pos.x -= dt * 0.1;
+		if(entity % 2)
+			camera.pos.x -= dt * 0.1;
+		else
+			camera.pos.x += dt * 0.1;
+
 	}
 	return;
 }

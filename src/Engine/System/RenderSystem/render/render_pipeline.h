@@ -25,7 +25,7 @@ namespace TourBillon
 		void passUpdateAfterRecreateSwapchain();
 
 		
-		void SetMainCamera(Entity camera);
+		void SetMainCamera(uint32_t windowindex, Entity camera);
 		//template<typename T>
 		//std::shared_ptr<T> AddRenderPass(RenderPassInitInfo* render_pass_init_info)
 		//{

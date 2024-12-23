@@ -36,7 +36,10 @@ void TourBillon::RenderPipeline::deferredRender(float dt, RHIDrawInfo& drawinfo)
 		//passUpdateAfterRecreateSwapchain();
 		return;
 	}
-
+	for (auto pass : m_RenderPassList)
+	{
+		pass->updateDescriptorSets(dt, drawinfo);
+	}
 	//此处可以多线程
 	//std::shared_ptr<RenderPass> curr_renderpass = std::static_pointer_cast<RenderPass>(m_RenderPassList.head());
 	//while (curr_renderpass)
@@ -45,10 +48,9 @@ void TourBillon::RenderPipeline::deferredRender(float dt, RHIDrawInfo& drawinfo)
 		pass->drawPass(dt, drawinfo);
 		//pass = std::static_pointer_cast<RenderPass>(curr_renderpass->next);
 	}
-	drawinfo.subEvents.addCallback([&](const CEvent&) {
-		passUpdateAfterRecreateSwapchain(); 
-		});
 	m_rhi->submitDraw(dt,drawinfo);
+
+	
 }
 
 void TourBillon::RenderPipeline::AfterFrameDraw(float dt, RHIDrawInfo& drawinfo)
@@ -62,14 +64,15 @@ void TourBillon::RenderPipeline::passUpdateAfterRecreateSwapchain()
 	//while (curr_renderpass)
 	for (auto pass : m_RenderPassList)
 	{
+		pass->destroyFramebuffer();
 		pass->setup_FrameBuffer();
 		//pass = std::static_pointer_cast<RenderPass>(curr_renderpass->next);
 	}
 }
 
-void TourBillon::RenderPipeline::SetMainCamera(Entity camera)
+void TourBillon::RenderPipeline::SetMainCamera(uint32_t windowindex, Entity camera)
 {
 	MainCameraPass* main_camera_pass = dynamic_cast<MainCameraPass*>(m_RenderPassList[Pass_MainCamera]);
 	if (main_camera_pass)
-		main_camera_pass->setMainCamera(camera);
+		main_camera_pass->setMainCamera(windowindex, camera);
 }

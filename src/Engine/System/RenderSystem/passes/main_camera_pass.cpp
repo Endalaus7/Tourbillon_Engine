@@ -40,11 +40,14 @@ void TourBillon::MainCameraPass::postInitialize()
 void TourBillon::MainCameraPass::beforeDraw(float dt, RHIDrawInfo& drawinfo)
 {
 	updateUboData();
-	updateDescriptorSet();
+	//updateUniformDescriptorSet();
 }
 
 void TourBillon::MainCameraPass::drawPass(float dt, RHIDrawInfo& drawinfo)
 {
+	updateUniformUboData(drawinfo.windowIndex);
+	
+
 	drawinfo.pipeline = m_render_pipelines[0];
 	drawinfo.renderpass = m_framebuffer.render_pass;
 	drawinfo.framebuffers = m_framebuffer.framebuffers[drawinfo.windowIndex][m_rhi->getCurrentFrameIndex()];
@@ -77,6 +80,11 @@ void TourBillon::MainCameraPass::drawPass(float dt, RHIDrawInfo& drawinfo)
 		});
 
 	m_rhi->UpdateDraw(dt, drawinfo);
+}
+
+void TourBillon::MainCameraPass::updateDescriptorSets(float dt, RHIDrawInfo& drawinfo)
+{
+	updateDescriptorSet();
 }
 
 void TourBillon::MainCameraPass::setup_DescriptorSetLayout()
@@ -149,6 +157,15 @@ void TourBillon::MainCameraPass::setup_FrameBuffer()
 	}
 }
 
+void TourBillon::MainCameraPass::destroyFramebuffer()
+{
+	for(auto& windowframes:m_framebuffer.framebuffers)
+	{
+		for(auto frame: windowframes)
+			m_rhi->destroyFramebuffer(frame);
+	}
+}
+
 void TourBillon::MainCameraPass::cacheUniformObject(const TBMath::Mat44& proj_view_matrix)
 {
 	m_uniform_buffer_object.proj_view_matrix = proj_view_matrix;
@@ -170,26 +187,27 @@ void TourBillon::MainCameraPass::cacheUniformDynamicObject()
 	}
 }
 
-void TourBillon::MainCameraPass::setMainCamera(Entity camera)
+void TourBillon::MainCameraPass::setMainCamera(uint32_t windowindex, Entity camera)
 {
-	m_camera = camera;
+	if (windowindex >= m_camera.size())
+		m_camera.resize(windowindex + 1);
+	m_camera[windowindex] = camera;
 }
 
 void TourBillon::MainCameraPass::updateUboData()
 {
-	Camera3D& camera = ECSManager::Instance()->GetComponent<Camera3D>(m_camera);
-	cacheUniformObject(camera.GetVPMatrix());
 	cacheUniformDynamicObject();
-
 	//clear vk resource
-
-	
 	if (m_renderCount != ECSManager::Instance()->GetComponentSize<Transfrom>())
 	{
 		dirtyUniformBuffer();
 	}
+}
 
-	//updateDescriptorSet();
+void TourBillon::MainCameraPass::updateUniformUboData(uint32_t windowindex)
+{
+	Camera3D& camera = ECSManager::Instance()->GetComponent<Camera3D>(m_camera[windowindex]);
+	cacheUniformObject(camera.GetVPMatrix());
 }
 
 void TourBillon::MainCameraPass::updateUboBuffer(RHIDrawInfo& info)
@@ -202,12 +220,15 @@ void TourBillon::MainCameraPass::updateDescriptorSet()
 {
 	RHIUpdatesDescriptorSetsInfo update_descriptorsets_info;
 	update_descriptorsets_info.write_info.resize(2);
+
+	update_descriptorsets_info.write_info[0].bindingindex = 0;
 	update_descriptorsets_info.write_info[0].buffer = m_uniformbuffer->buffer;
 	update_descriptorsets_info.write_info[0].descriptorset = m_descriptor[m_rhi->getCurrentFrameIndex()].descriptor_set;
 	update_descriptorsets_info.write_info[0].range = sizeof(UniformBufferObject);
 	update_descriptorsets_info.write_info[0].offset = 0;
 	update_descriptorsets_info.write_info[0].descriptorType = RHI_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 
+	update_descriptorsets_info.write_info[1].bindingindex = 1;
 	update_descriptorsets_info.write_info[1].buffer = m_uniformdynamicbuffer->buffer;
 	update_descriptorsets_info.write_info[1].descriptorset = m_descriptor[m_rhi->getCurrentFrameIndex()].descriptor_set;
 	update_descriptorsets_info.write_info[1].range = sizeof(UniformBufferDynamicObject);// *m_uniform_buffer_dynamic_object_cache.size();
