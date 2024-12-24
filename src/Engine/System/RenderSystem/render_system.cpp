@@ -26,13 +26,19 @@ void TourBillon::RenderSystem::initialize(SystemInitInfo* init_info)
     window_create_info.width = render_init_info->window_width;
     window_create_info.height = render_init_info->window_height;
     window_create_info.title = "render window";
+    window_create_info.sharedwindow = nullptr;
 
     m_rhiWindows.resize(render_init_info->window_num);
 
+    uint32_t windowindex = 0;
     for(auto& rhiwindow: m_rhiWindows)
     {
+        window_create_info.index = windowindex;
         rhiwindow = RHI_Factory::Instance()->createRHIWindow(render_init_info->rhi_type);
         rhiwindow->initialize(window_create_info);
+        //if (!window_create_info.sharedwindow)
+        //    window_create_info.sharedwindow = rhiwindow;
+        windowindex++;
     }
 
     m_frame_rate = render_init_info->frame_rate;
@@ -133,6 +139,7 @@ void TourBillon::RenderSystem::loadMeshBuffer(Geometry& mesh)
 void TourBillon::RenderSystem::SetMainCamera(uint32_t windowindex, Entity camera)
 {
     m_renderPipeline->SetMainCamera(windowindex, camera);
+    m_rhiWindows[windowindex]->setCamera(camera);
 }
 
 void TourBillon::RenderSystem::clearBuffers()

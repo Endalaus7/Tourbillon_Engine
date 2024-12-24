@@ -57,6 +57,15 @@ namespace TBMath
 			return *this;
 		}
 
+		Vec4 operator*(Vec4 const& v)
+		{
+			Real newW = w * v.w - x * v.x - y * v.y - z * v.z;
+			Real newX = w * v.x + x * v.w + y * v.z - z * v.y;
+			Real newY = w * v.y + y * v.w + z * v.x - x * v.z;
+			Real newZ = w * v.z + z * v.w + x * v.y - y * v.x;
+
+			return Vec4(newW, newX, newY, newZ);
+		}
 
 		Real x, y, z, w;
 	};

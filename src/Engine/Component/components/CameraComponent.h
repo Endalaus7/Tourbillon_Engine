@@ -3,8 +3,10 @@
 #include "Component.h"
 #include "Math/vec2.hpp"
 #include "Math/vec3.hpp"
+#include "Math/mat33.hpp"
 #include "Math/mat44.hpp"
 #include "Math/aabbBox.hpp"
+#include "Math/quaternion.hpp"
 #include "ComponentData.h"
 
 //所有与几何相关的组件
@@ -24,6 +26,13 @@ namespace TourBillon
 			STATIC_PROPERTY_DEF(float, farClip)
 		STATIC_PROPERTY_CLASS_END()
 	public:
+		void move(const TBMath::Vec3& offset);
+		void rotation(const Real& pitch, const Real& yaw, const Real& roll);
+
+		TBMath::Vec3 getDirection();
+
+		TBMath::quaternion GetQuaternion();
+		TBMath::Mat33 GetRotationMatrix();
 		TBMath::Mat44 GetVPMatrix();
 	};
 }

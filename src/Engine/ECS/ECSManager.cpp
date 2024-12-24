@@ -2,14 +2,14 @@
 #include "SystemManager.h"
 #include "ComponentManager.h"
 #include "EntityManager.h"
-#include "RenderSystem/render/render_system.h"
+#include "RenderSystem/render_system.h"
 #include "common.hpp"
 
 void TourBillon::ECSManager::initialize(ECSManagerInitInfo ECS_Manager_init_info)
 {
 	mComponentManager = std::make_unique<ComponentManager>();
 	mEntityManager = std::make_unique<EntityManager>();
-	//mEventManager = std::make_unique<EventManager>();
+	mEventManager = std::make_unique<EventManager>();
 	mSystemManager = std::make_unique<SystemManager>();
 
 }
@@ -28,15 +28,12 @@ void TourBillon::ECSManager::DestroyEntity(TourBillon::Entity entity)
 	mSystemManager->EntityDestroyed(entity);
 }
 
-void TourBillon::ECSManager::run()
+void TourBillon::ECSManager::AddListener(Events::EventType type, std::function<void(const CEvent&)> callback)
 {
-	//m_render_thread = std::thread(&RenderSystem::rendLoop, m_renderSystem);
-	//m_render_thread.join();
-	
-	
-
-	//
-
-	renderShouldClose = true;
+	mEventManager->AddListener(type, callback);
 }
 
+void TourBillon::ECSManager::SendEvent(Events::EventType type, void* data, size_t datasize)
+{
+	mEventManager->SendEvent(type, data, datasize);
+}

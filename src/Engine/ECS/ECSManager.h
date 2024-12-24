@@ -8,6 +8,7 @@
 #include "SystemManager.h"
 #include "ComponentManager.h"
 #include "EntityManager.h"
+#include "EventManager.h"
 //Coordinator
 
 namespace TourBillon
@@ -88,13 +89,16 @@ namespace TourBillon
 		{
 			mSystemManager->SetSignature<T>(signature);
 		}
-		void run();
 
-		
+		void AddListener(Events::EventType type, std::function<void(const CEvent&)> callback);
+		void SendEvent(Events::EventType type, void* data = nullptr, size_t datasize = 0);
+
+
+
 	public:
 		std::unique_ptr<ComponentManager> mComponentManager;
 		std::unique_ptr<EntityManager> mEntityManager;
-		//std::unique_ptr<EventManager> mEventManager;
+		std::unique_ptr<EventManager> mEventManager;
 		std::unique_ptr<SystemManager> mSystemManager;
 
 

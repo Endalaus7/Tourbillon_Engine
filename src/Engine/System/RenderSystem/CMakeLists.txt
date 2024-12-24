@@ -33,7 +33,6 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${HEADER_FILES} ${SOURCE_F
 add_library(${PROJECT_NAME} STATIC  ${HEADER_FILES} ${SOURCE_FILES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${Component_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
-message("component:"${Component_PATH})
 target_link_libraries(${PROJECT_NAME} PUBLIC ECS Component)
 target_link_libraries(${PROJECT_NAME} PRIVATE Vulkan::Vulkan glfw)
 

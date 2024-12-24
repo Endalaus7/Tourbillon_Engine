@@ -3,8 +3,11 @@
 #include "Components/CameraComponent.h"
 #include "Components/GeometryComponent.h"
 #include "Components/RenderableComponent.h"
+#include "Components/KeysComponent.h"
+#include "Components/WindowComponent.h"
 
-#include "RenderSystem/render/render_system.h"
+#include "RenderSystem/render_system.h"
+#include "IOSystem/IOSystem.h"
 #include "rhi/rhi_source.h"
 
 void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
@@ -13,18 +16,21 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	ECSManager::Instance()->initialize(ecs_manager_init_info);
 
 
+	ECSManager::Instance()->RegisterComponent<RenderWindow>();
 	ECSManager::Instance()->RegisterComponent<Geometry>();//删除
 	ECSManager::Instance()->RegisterComponent<Camera3D>();
 	ECSManager::Instance()->RegisterComponent<Transfrom>();
 	ECSManager::Instance()->RegisterComponent<Renderable>();
+	ECSManager::Instance()->RegisterComponent<Buttons>();
+	ECSManager::Instance()->RegisterComponent<Mouse>();
 
 	m_renderSystem = ECSManager::Instance()->mSystemManager->RegisterSystem<RenderSystem>();
 	{
 		Signature signature;
-		signature.set(ECSManager::Instance()->GetComponentType<Geometry>());
+		signature.set(ECSManager::Instance()->GetComponentType<Renderable>());
 		ECSManager::Instance()->SetSystemSignature<RenderSystem>(signature);
 	}
-	
+
 	RenderSystemInitInfo render_system_init_info;
 	render_system_init_info.rhi_type = VULKAN_RHI;
 	render_system_init_info.frame_rate = 60;
@@ -33,6 +39,15 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	render_system_init_info.window_num = engine_init_info.window_num;
 	m_renderSystem->initialize(&render_system_init_info);
 
+
+	auto& io_system = ECSManager::Instance()->mSystemManager->RegisterSystem<IOSystem>();
+	{
+		Signature signature;
+		//signature.set(ECSManager::Instance()->GetComponentType<Renderable>());
+		ECSManager::Instance()->SetSystemSignature<IOSystem>(signature);
+	}
+	IOSystemInitInfo io_system_init_info;
+	io_system->initialize(&io_system_init_info);
 
 	//相机
 	Entity camera_entity = ECSManager::Instance()->CreateEntity();
@@ -48,18 +63,18 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	ECSManager::Instance()->AddComponent<Camera3D>(camera_entity, camera0);
 	m_renderSystem->SetMainCamera(0, camera_entity);
 
-	camera_entity = ECSManager::Instance()->CreateEntity();
-	Camera3D camera1;
-	camera1.pos = TBMath::Vec3(2, 2, -2);
-	camera1.lookat = TBMath::Vec3(0, 0, 0);
-	camera1.up = TBMath::Vec3(0, 0, -1);
-	camera1.isOrthographic = false;
-	camera1.fovX = 60;
-	camera1.fovY = ((float)engine_init_info.window_width / (float)engine_init_info.window_width) * camera1.fovX;
-	camera1.nearClip = 0.1f;
-	camera1.farClip = 10.0f;
-	ECSManager::Instance()->AddComponent<Camera3D>(camera_entity, camera1);
-	m_renderSystem->SetMainCamera(1, camera_entity);
+	//camera_entity = ECSManager::Instance()->CreateEntity();
+	//Camera3D camera1;
+	//camera1.pos = TBMath::Vec3(2, 2, -2);
+	//camera1.lookat = TBMath::Vec3(0, 0, 0);
+	//camera1.up = TBMath::Vec3(0, 0, -1);
+	//camera1.isOrthographic = false;
+	//camera1.fovX = 60;
+	//camera1.fovY = ((float)engine_init_info.window_width / (float)engine_init_info.window_width) * camera1.fovX;
+	//camera1.nearClip = 0.1f;
+	//camera1.farClip = 10.0f;
+	//ECSManager::Instance()->AddComponent<Camera3D>(camera_entity, camera1);
+	//m_renderSystem->SetMainCamera(1, camera_entity);
 	
 	//手动初始化几何体
 	//std::vector<Entity> entities(MAX_ENTITIES - 1);
@@ -107,11 +122,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 
 void TourBillon::TBEngine::run()
 {
-	ECSManager::Instance()->run();
-	std::function<void(float)> boundBeforeRender = std::bind(&TBEngine::UpdateBeforeRender, this, std::placeholders::_1);
-	std::function<void(float)> boundAfterRender = std::bind(&TBEngine::UpdateAfterRender, this, std::placeholders::_1);
-
-	m_renderSystem->rendLoop(boundBeforeRender, boundAfterRender);//PollEvents必须在主线程中运行
+	m_renderSystem->rendLoop(METHOD_LISTENER(TBEngine::UpdateBeforeRender), METHOD_LISTENER(TBEngine::UpdateAfterRender));//PollEvents必须在主线程中运行
 }
 
 
@@ -119,17 +130,16 @@ void TourBillon::TBEngine::UpdateBeforeRender(float dt)
 {
 	static float rotateCamera = 0;
 	rotateCamera += dt * 0.2;
-	//uint32_t cameraindex = 0;
-	const auto& camera_components = ECSManager::Instance()->GetComponentEntities<Camera3D>();
-	for (auto entity : camera_components)
-	{
-		auto& camera = ECSManager::Instance()->GetComponent<Camera3D>(entity);
-		if(entity % 2)
-			camera.pos.x -= dt * 0.1;
-		else
-			camera.pos.x += dt * 0.1;
-
-	}
+	//const auto& camera_components = ECSManager::Instance()->GetComponentEntities<Camera3D>();
+	//for (auto entity : camera_components)
+	//{
+	//	auto& camera = ECSManager::Instance()->GetComponent<Camera3D>(entity);
+	//	if(entity % 2)
+	//		camera.pos.x -= dt * 0.1;
+	//	else
+	//		camera.pos.x += dt * 0.1;
+	//
+	//}
 	return;
 }
 

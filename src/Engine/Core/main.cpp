@@ -7,7 +7,6 @@
 #include <Engine.h>
 #include "log.hpp"
 #include "Components/GeometryComponent.h"
-//#include "render/render_system.h"
 
 const int WIDTH = 500;
 const int HEIGHT = 500;

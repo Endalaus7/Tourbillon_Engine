@@ -40,7 +40,6 @@ void TourBillon::RenderPipeline::deferredRender(float dt, RHIDrawInfo& drawinfo)
 	{
 		pass->updateDescriptorSets(dt, drawinfo);
 	}
-	//此处可以多线程
 	//std::shared_ptr<RenderPass> curr_renderpass = std::static_pointer_cast<RenderPass>(m_RenderPassList.head());
 	//while (curr_renderpass)
 	for (auto pass : m_RenderPassList)

@@ -1,5 +1,41 @@
 #include "CameraComponent.h"
 #include "Math/trans.hpp"
+#include "Math/quaternion.hpp"
+
+void TourBillon::Camera3D::move(const TBMath::Vec3& offset)
+{
+	pos += offset;
+	lookat += offset;
+}
+
+
+void TourBillon::Camera3D::rotation(const Real& pitch, const Real& yaw, const Real& roll)
+{
+	TBMath::quaternion rotQuat;
+	rotQuat.setRotaionMartix(pitch, yaw, roll);
+	TBMath::quaternion newquat = rotQuat * GetQuaternion();
+	lookat = newquat.getLookAt();
+	up = newquat.getUp();
+}
+
+TBMath::Vec3 TourBillon::Camera3D::getDirection()
+{
+	return lookat - pos;
+}
+
+TBMath::quaternion TourBillon::Camera3D::GetQuaternion()
+{
+	TBMath::quaternion quat;
+	quat.setRotaionMartix(GetRotationMatrix());
+	return quat;
+}
+
+TBMath::Mat33 TourBillon::Camera3D::GetRotationMatrix()
+{
+	TBMath::Vec3 dir = getDirection();
+	TBMath::Vec3 right = dir.cross(up);
+	return TBMath::Mat33(dir, right, up);
+}
 
 //#include <glm/glm.hpp>
 //#include <glm/gtc/matrix_transform.hpp>

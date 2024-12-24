@@ -17,6 +17,8 @@ namespace TourBillon
 	public:
 		virtual void initialize(SystemInitInfo* init_info) = 0;
 
+		//void receiveEvent();
+
 		std::set<Entity> mEntities;
 	protected:
 	};

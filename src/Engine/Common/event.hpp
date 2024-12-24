@@ -2,7 +2,11 @@
 
 #include <functional>
 #include <vector>
+#include <list>
 #include <unordered_map>
+
+#define METHOD_LISTENER(Listener) std::bind(&Listener, this, std::placeholders::_1)
+#define FUNCTION_LISTENER(Listener) std::bind(&Listener, std::placeholders::_1)
 
 class CEvent {
 public:
@@ -21,7 +25,8 @@ public:
         return;
     }
 
-    void* event_data;
+    void* event_data = NULL;
+    size_t dataSize = 0;
 private:
-	std::vector<std::function<void(const CEvent&)>> callbacks; // 存储事件的回调函数
+	std::list<std::function<void(const CEvent&)>> callbacks; // 存储事件的回调函数
 };

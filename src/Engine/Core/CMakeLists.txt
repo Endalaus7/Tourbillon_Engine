@@ -9,7 +9,7 @@ source_group("Common Files" FILES ${COMMON_HEADERS_FILES})
 add_executable(${PROJECT_NAME} ${HEADER_FILES} ${SOURCE_FILES} ${COMMON_HEADERS_FILES})
 
 #message("systems:" ${SYSTEMS_NAME})
-target_link_libraries(${PROJECT_NAME} PUBLIC RenderSystem Component)
+target_link_libraries(${PROJECT_NAME} PUBLIC RenderSystem IOSystem Component)
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${ECS_PATH} ${SYSTEMS_PATH} ${COMMON_FUNCTION_PATH} ${CMAKE_CURRENT_SOURCE_DIR} )
 

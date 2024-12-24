@@ -15,6 +15,8 @@ namespace TourBillon
 	using Entity = std::uint32_t;
 	const Entity MAX_ENTITIES = 50000;
 
-	
+	using KeyType = std::uint32_t;
+	const KeyType MAX_KEYVALUE = 400;
+	using KeyValues = std::bitset<MAX_KEYVALUE>;
 }
 
