@@ -140,4 +140,13 @@ namespace TBMath
 
         return result;
     }
+
+    FORCE_INLINE float ToRadians(float degrees)
+    {
+        return degrees * (M_PI / 180.0f);
+    }
+    FORCE_INLINE float ToDegrees(float radians)
+    {
+        return radians * (180.0f / M_PI);
+    }
 }

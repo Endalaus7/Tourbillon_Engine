@@ -84,7 +84,7 @@ void TourBillon::RenderSystem::rendLoop(std::function<void(float)> beforeRender,
         uint32_t index = 0;
         for (auto& entity : geo_components)
         {
-            auto& geometry = ECSManager::Instance()->GetComponent<Geometry>(entity);
+            auto& geometry = ECSManager::Instance()->GetComponent<Geometry>(entity);//换成资源获取
 
             drawinfo.drawMeshinfos[index].vertex_buffer = geometry.vertexBuffer;
             drawinfo.drawMeshinfos[index].index_buffer = geometry.indexBuffer;

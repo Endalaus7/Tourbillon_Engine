@@ -3,6 +3,7 @@
 #include "Component.h"
 #include "Math/aabbBox.hpp"
 
+#include "Assets.h"
 #include "ColorComponent.h"
 #include "ComponentData.h"
 
@@ -43,10 +44,10 @@ namespace TourBillon
 	};
 
 	//static mesh
-	struct Geometry :public Component
+	struct Geometry :public AssetsData
 	{
 		STATIC_PROPERTY_CLASS_BEGIN(GeometryComponent)
-			STATIC_PROPERTY_DEF(std::string, modelPath)
+			STATIC_PROPERTY_DEF(ReflectPath, modelPath)//可以是相对路径
 			//STATIC_PROPERTY_DEF(AABBBox, geometryAABB)//TODO
 			STATIC_PROPERTY_DEF_ARRAY(Vertex, vertexArray)
 			STATIC_PROPERTY_DEF_ARRAY(Index_3P, indexArray)

@@ -1,6 +1,8 @@
 #include "keyIO.h"
 #include "ECSManager.h"
 
+#include "Math/trans.hpp"
+
 #include "components/ComponentData.h"
 #include "components/KeysComponent.h"
 #include "components/CameraComponent.h"
@@ -50,7 +52,7 @@ void TourBillon::keyIO::updateMouseState(const CEvent& event)
 	if (mouse.pressRight)
 	{
 		auto& camera = ECSManager::Instance()->GetComponent<Camera3D>(window.camera);
-		camera.rotation(ToRadians(-mouse.mouseOffset.y) * 0.1, ToRadians(mouse.mouseOffset.x) * 0.1, 0.f);
+		camera.rotation(TBMath::ToRadians(-mouse.mouseOffset.y) * 0.1, TBMath::ToRadians(mouse.mouseOffset.x) * 0.1, 0.f);
 		//camera.rotation(0.001, 0.001, 0.f);
 	}
 }

@@ -13,7 +13,7 @@ namespace TourBillon
 	class Renderable:public Component {
 	public:
 		STATIC_PROPERTY_CLASS_BEGIN(Renderable)
-			STATIC_PROPERTY_DEF(std::shared_ptr<Geometry>, mesh)//之后换成自定义智能指针，延迟删除
+			STATIC_PROPERTY_DEF(Geometry, mesh)//之后换成自定义智能指针，延迟删除
 		STATIC_PROPERTY_CLASS_END()
 	};
 

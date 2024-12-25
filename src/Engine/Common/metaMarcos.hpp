@@ -26,3 +26,5 @@ template <typename T, typename U>
 inline constexpr bool IsType(const U& obj) {
     return std::is_same_v<std::remove_reference_t<T>, std::remove_reference_t<decltype(obj)>>;
 }
+
+using ReflectPath = std::string;

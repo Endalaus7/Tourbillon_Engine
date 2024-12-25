@@ -6,15 +6,10 @@
 #include "Math/vec3.hpp"
 #include "Math/mat44.hpp"
 
-//所有与几何相关的组件
+//该文件下的结构体，可能会批量处理，隐藏不要在结构体中添加冗余变量/虚函数
 
 namespace TourBillon
 {
-	float ToRadians(float degrees);
-	
-	float ToDegrees(float radians);
-	
-
 	struct Point3d
 	{
 		Point3d(Real x, Real y, Real z) :pos(x, y, z) {}
