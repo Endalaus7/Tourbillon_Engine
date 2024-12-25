@@ -47,7 +47,7 @@ void TourBillon::keyIO::updateMouseState(const CEvent& event)
 	Entity window_entity = (Entity)event.event_data;
 	auto& mouse = ECSManager::Instance()->GetComponent<Mouse>(window_entity);
 	auto& window = ECSManager::Instance()->GetComponent<RenderWindow>(mouse.baseWindow);
-	if (mouse.pressLeft)
+	if (mouse.pressRight)
 	{
 		auto& camera = ECSManager::Instance()->GetComponent<Camera3D>(window.camera);
 		camera.rotation(ToRadians(-mouse.mouseOffset.y) * 0.1, ToRadians(mouse.mouseOffset.x) * 0.1, 0.f);

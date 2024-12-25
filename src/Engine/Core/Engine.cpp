@@ -59,7 +59,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	camera0.fovX = 60;
 	camera0.fovY = ((float)engine_init_info.window_width / (float)engine_init_info.window_width) * camera0.fovX;
 	camera0.nearClip = 0.1f;
-	camera0.farClip = 10.0f;
+	camera0.farClip = 100.0f;
 	ECSManager::Instance()->AddComponent<Camera3D>(camera_entity, camera0);
 	m_renderSystem->SetMainCamera(0, camera_entity);
 

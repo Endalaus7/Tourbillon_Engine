@@ -106,7 +106,7 @@ void TourBillon::VulkanWindow::keyCallback(GLFWwindow* window, int key, int scan
 void TourBillon::VulkanWindow::mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
     auto& mouse = ECSManager::Instance()->GetComponent<Mouse>(RHIWindow::m_window_entity);
-    if (button == GLFW_MOUSE_BUTTON_LEFT)
+    if (button == GLFW_MOUSE_BUTTON_RIGHT)
     {
         if (action)
         {
@@ -118,14 +118,14 @@ void TourBillon::VulkanWindow::mouseButtonCallback(GLFWwindow* window, int butto
             }
             glfwSetCursorPos(window, m_lockx, m_locky);
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-            mouse.pressLeft = true;
+            mouse.pressRight = true;
         }
         else if (action == GLFW_RELEASE)
         {
             glfwSetCursorPos(window, m_lockx, m_locky);
             glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
             m_islock = false;
-            mouse.pressLeft = false;
+            mouse.pressRight = false;
         }
 
     }
@@ -139,7 +139,7 @@ void TourBillon::VulkanWindow::cursorPosCallback(GLFWwindow* window, double xpos
     mouse.mousePos = TBMath::Vec2(xpos, ypos);
     mouse.mouseOffset = TBMath::Vec2(xpos - m_lastx, ypos - m_lasty);
     
-    LOG_DEBUG(std::to_string(mouse.mouseOffset.x) + "," + std::to_string(mouse.mouseOffset.y));
+    //LOG_DEBUG(std::to_string(mouse.mouseOffset.x) + "," + std::to_string(mouse.mouseOffset.y));
 
     ECSManager::Instance()->SendEvent(Events::MOUSE_MOVE, (void*)RHIWindow::m_window_entity);
 

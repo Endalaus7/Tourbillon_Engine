@@ -2,4 +2,5 @@
 
 void TourBillon::imageIO::init()
 {
+	//stbi_load();
 }

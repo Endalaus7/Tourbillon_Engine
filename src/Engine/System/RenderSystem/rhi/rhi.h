@@ -50,6 +50,7 @@ namespace TourBillon
 		virtual bool AllocateDescriptorSets(const RHIDescriptorSetAllocateInfo* pAllocateInfo, RHIDescriptorSet*& pDescriptorSets) = 0;
 		virtual bool updateDescriptorSets(RHIUpdatesDescriptorSetsInfo& writeinfo) = 0;
 
+		virtual void createTextureImage(void* imgdata, size_t imageSize, int imageWidth, int imageHeight, int texChannels, RHIImage*& image_buffer, RHIDeviceMemory*& buffer_memory) = 0;
 
 		virtual void updateBuffer(void* data, uint32_t windowindex, RHIBuffer* buffer, RHIDeviceSize offset, RHIDeviceSize size) = 0;
 

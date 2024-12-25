@@ -27,6 +27,8 @@ namespace TourBillon
         virtual void UpdateDraw(float dt, RHIDrawInfo& drawinfo)override;
         virtual void AfterFrameDraw(float dt)override;
 
+        virtual void createTextureImage(void* imgdata, size_t imageSize,int imageWidth, int imageHeight, int texChannels, RHIImage*& image_buffer, RHIDeviceMemory*& buffer_memory)override;
+
         void multiWindowResize(uint32_t windowsize);
 
         virtual void waitFrameTime(float wait_deltaTime);
@@ -77,6 +79,7 @@ namespace TourBillon
         bool createGraphicsPipeline(const RHIPipelineCreateInfo* pCreateInfo, RHIPipeline*& pPipeline)override;
         bool createFrameBuffer(const RHIFramebufferCreateInfo* pCreateInfo, RHIFramebuffer*& pframeBuffer)override;
         void createFrameBufferImageAndView(uint32_t index);
+        
         bool createSemaphore();
 
         VkShaderModule createShaderModule(const std::vector<char>& code);
@@ -104,6 +107,9 @@ namespace TourBillon
         std::vector<const char*> getRequiredExtensions();
         uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties); 
         
+        void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+        void copyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
+        VkImageView createImageView(VkImage image, VkFormat format); 
 
         void DestroyDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerEXT debugMessenger, const VkAllocationCallbacks* pAllocator);
         
