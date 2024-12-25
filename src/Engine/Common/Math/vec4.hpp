@@ -19,6 +19,11 @@ namespace TBMath
 			: x(x), y(y), z(z), w(w)
 		{}
 
+		Vec4(Vec3 xyz, Real w)
+			: x(xyz.x), y(xyz.y), z(xyz.z), w(w)
+		{}
+
+
 		Vec4 operator+(Vec4 const& v) const
 		{
 			return Vec4(

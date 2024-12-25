@@ -1,4 +1,5 @@
 #pragma once
+#include "Mat33.hpp"
 #include "Mat44.hpp"
 #include "Vec3.hpp"
 #include "common.hpp"
@@ -64,7 +65,27 @@ namespace TBMath
         Mat44 model = scaleMat * rotateXMat * rotateYMat * rotateZMat * translateMat;
         return model;
     }
+    FORCE_INLINE Mat33 lookAtRotate(const Vec3& eye, const Vec3& target, const Vec3& up)
+    {
+        Vec3 f = (target - eye).normalizedCopy();  // 前向向量
+        Vec3 r = f.cross(up).normalizedCopy();     // 右向量
+        Vec3 u = r.cross(f);                  // 上向量
 
+        Mat33 Result;
+
+        // 构造旋转矩阵部分
+        Result[0][0] = r.x;
+        Result[0][1] = r.y;
+        Result[0][2] = r.z;
+        Result[1][0] = u.x;
+        Result[1][1] = u.y;
+        Result[1][2] = u.z;
+        Result[2][0] = -f.x;
+        Result[2][1] = -f.y;
+        Result[2][2] = -f.z;
+
+        return Result;
+    }
     FORCE_INLINE Mat44 lookAt(const Vec3& eye, const Vec3& target, const Vec3& up)
     {
         Vec3 f = (target - eye).normalizedCopy();  // 前向向量

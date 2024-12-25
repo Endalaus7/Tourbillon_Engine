@@ -29,11 +29,11 @@ namespace TBMath
 			m[2][0] = mat20; m[2][1] = mat21; m[2][2] = mat22;
 		}
 
-		Mat33(Vec3 forward,Vec3 right,Vec3 up)
+		Mat33(Vec3 row1, Vec3 row2, Vec3 row3)
 		{
-			m[0][0] = forward.x; m[0][1] = forward.y; m[0][2] = forward.z;
-			m[1][0] = right.x  ; m[1][1] = right.y  ; m[1][2] = right.z  ;
-			m[2][0] = up.x     ; m[2][1] = up.y     ; m[2][2] = up.z     ;
+			m[0][0] = row1.x; m[0][1] = row1.y; m[0][2] = row1.z;
+			m[1][0] = row2.x; m[1][1] = row2.y; m[1][2] = row2.z;
+			m[2][0] = row3.x; m[2][1] = row3.y; m[2][2] = row3.z;
 		}
 
 		Mat33 operator*(Mat33 const& rhs)

@@ -6,26 +6,34 @@
 #include "mat33.hpp"
 namespace TBMath
 {
-	class quaternion:public Vec4
+	class quaternion
 	{
 	public:
         quaternion()
-            :Vec4(0.f, 0.f, 0.f, 1.f)
         {
 
         }
         quaternion(const Vec4& vec4)
-            :Vec4(vec4)
+            :quaternion(vec4.w,vec4.x,vec4.y,vec4.z)
         {
 
         }
-        quaternion(Real x, Real y, Real z, Real w)
-            :Vec4(x,y,z,w)
+        quaternion(Real w,Real x, Real y, Real z)
+            :w(w),x(x),y(y),z(z)
         {
-
         }
-        
-        Vec3 rotate(Vec3& v)
+
+        quaternion operator*(quaternion const& v)const
+        {
+            Real newW = w * v.w - x * v.x - y * v.y - z * v.z;
+            Real newX = w * v.x + x * v.w + y * v.z - z * v.y;
+            Real newY = w * v.y - y * v.w + z * v.x + x * v.z;
+            Real newZ = w * v.z + z * v.w - x * v.y + y * v.x;
+
+            return quaternion(newW, newX, newY, newZ);
+        }
+
+        Vec3 rotate(Vec3& v)//不确定对不对
         {
             quaternion v_q( v.x, v.y, v.z, 0.f);
             quaternion q_inv = conjugate();
@@ -35,7 +43,7 @@ namespace TBMath
         quaternion conjugate() const {
             return quaternion(-x, -y, -z, w);
         }
-        Vec3 getLookAt() { return rotate(Vec3(0, 0, -1)); }
+        Vec3 getDir() { return rotate(Vec3(0, 0, -1)); }
         Vec3 getUp() { return rotate(Vec3(0, 1, 0)); }
 
         quaternion operator*(Vec4 const& v)
@@ -107,5 +115,6 @@ namespace TBMath
                 }
             }
 		}
+        Real w, x, y, z;
 	};
 }

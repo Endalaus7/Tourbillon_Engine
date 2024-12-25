@@ -31,6 +31,14 @@ namespace TBMath
 			return *this;
 		}
 
+		Vec3 operator-() const
+		{
+			return Vec3(
+				-x,
+				-y,
+				-z);
+		}
+
 		Vec3 operator-(Vec3 const& rhs) const
 		{
 			return Vec3(
@@ -121,6 +129,10 @@ namespace TBMath
 				z * other.x - x * other.z,
 				x * other.y - y * other.x
 			);
+		}
+		Real length()const
+		{
+			return sqrt(x * x + y * y + z * z);
 		}
 
 		Real x, y, z;
