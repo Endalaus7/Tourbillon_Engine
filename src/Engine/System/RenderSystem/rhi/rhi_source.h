@@ -5,8 +5,12 @@
 #include <memory>
 #include <queue>
 #include "rhi_struct.h"
+
+//暂时没有用，内存资源管理即将移动到ecs中，提供给更多system使用。
+//届时RHIResource可以作为内存资源管理在rhi层的实现
+
 //RHIResource是抽象了gpu侧的资源
-//RHIResource提供了几种功能：引用计数、延迟删除及追踪、运行时数据和标记。
+
 
 namespace TourBillon
 {
