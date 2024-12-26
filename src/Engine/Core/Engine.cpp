@@ -2,7 +2,6 @@
 #include "ECSManager.h"
 #include "Components/CameraComponent.h"
 #include "Components/GeometryComponent.h"
-#include "Components/RenderableComponent.h"
 #include "Components/KeysComponent.h"
 #include "Components/WindowComponent.h"
 #include "Components/MaterialComponent.h"
@@ -18,18 +17,17 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 
 
 	ECSManager::Instance()->RegisterComponent<RenderWindow>();
-	//ECSManager::Instance()->RegisterComponent<Geometry>();//删除
+	ECSManager::Instance()->RegisterComponent<GeometryShared>();
 	ECSManager::Instance()->RegisterComponent<Camera3D>();
-	ECSManager::Instance()->RegisterComponent<Material>();
+	//ECSManager::Instance()->RegisterComponent<Material>();
 	ECSManager::Instance()->RegisterComponent<Transfrom>();
-	ECSManager::Instance()->RegisterComponent<Renderable>();
 	ECSManager::Instance()->RegisterComponent<Buttons>();
 	ECSManager::Instance()->RegisterComponent<Mouse>();
 
 	m_renderSystem = ECSManager::Instance()->mSystemManager->RegisterSystem<RenderSystem>();
 	{
 		Signature signature;
-		signature.set(ECSManager::Instance()->GetComponentType<Renderable>());
+		//signature.set(ECSManager::Instance()->GetComponentType<Renderable>());
 		ECSManager::Instance()->SetSystemSignature<RenderSystem>(signature);
 	}
 
@@ -41,7 +39,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	render_system_init_info.window_num = engine_init_info.window_num;
 	m_renderSystem->initialize(&render_system_init_info);
 
-
+	//最后一个初始化
 	auto& io_system = ECSManager::Instance()->mSystemManager->RegisterSystem<IOSystem>();
 	{
 		Signature signature;
@@ -73,7 +71,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	int index = 0;
 	std::vector<Entity> entities(1000);
 
-	std::shared_ptr<Geometry> mesh = std::make_shared<Geometry>();
+	Geometry* mesh = new Geometry;
 	Vertex v1(Point3d(-0.5f, -0.5f, 0.f), Point2d(0.0f, 0.0f), ColorRGBA(1.0f, 0.0f, 0.0f, 1.0f));
 	Vertex v2(Point3d(0.5f, -0.5f, 0.f), Point2d(1.0f, 0.0f), ColorRGBA(0.0f, 1.0f, 0.0f, 1.0f));
 	Vertex v3(Point3d(0.5f, 0.5f, 0.f), Point2d(1.0f, 1.0f), ColorRGBA(0.0f, 0.0f, 1.0f, 1.0f));
@@ -92,7 +90,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	//Entity mesh_entity = ECSManager::Instance()->CreateEntity();
 	//ECSManager::Instance()->AddComponent<Geometry>(mesh_entity, *mesh);
 	
-
+	
 	for (auto& entity : entities)
 	{
 		entity = ECSManager::Instance()->CreateEntity();
@@ -100,14 +98,13 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 		Transfrom trans;
 		trans.rotation = TBMath::Vec3(0, 0, 0);
 		trans.scale = TBMath::Vec3(1, 1, 1);
-		trans.translation = TBMath::Vec3(1.5f * (index - 4), 0, 0);
+		trans.translation = TBMath::Vec3(1.1f * (index - 20), 0, 0);
 
-		Renderable renderObj;
-		renderObj.mesh = mesh;
+		GeometryShared meshptr;
+		meshptr.setAssetData("Plane", mesh);
 
-		
 		ECSManager::Instance()->AddComponent<Transfrom>(entity, trans);
-		ECSManager::Instance()->AddComponent<Renderable>(entity, renderObj);
+		ECSManager::Instance()->AddComponent<GeometryShared>(entity, meshptr);
 		index++;
 	}
 }

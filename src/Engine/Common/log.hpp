@@ -4,6 +4,7 @@
 #include <iostream>
 #include <string>
 #include <filesystem>
+#include <windows.h>
 namespace TourBillon
 {
 	
@@ -14,6 +15,7 @@ namespace TourBillon
 		{
 			TYPE_LOG_DEBUG,
 			TYPE_LOG_WARNING,
+			TYPE_LOG_WINDOWBOX,
 			TYPE_LOG_ERROR,
 
 		};
@@ -23,6 +25,8 @@ namespace TourBillon
 			std::filesystem::path file_path = filepath;
 			// 提取文件名
 			std::string file_name = file_path.filename().string();
+
+			std::string showtext = "file name:" + file_name + "\nline:" + std::to_string(lineNum) + "\nmessage:" + message;
 
 			switch (type)
 			{
@@ -35,6 +39,9 @@ namespace TourBillon
 			case TYPE_LOG_ERROR:
 				std::cout << "#LOG ERROR[" << file_name << "," << std::to_string(lineNum) << "]:" << message << std::endl;
 				throw std::runtime_error(message);
+				break;
+			case TYPE_LOG_WINDOWBOX:
+				MessageBox(NULL, showtext.c_str(), "LOG Message", MB_OK);
 				break;
 			default:
 				break;
@@ -53,9 +60,11 @@ namespace TourBillon
 //#ifndef _RELEASE
 #define LOG_DEBUG(...) {}
 #define LOG_WARNING(...) {}
+#define LOG_WINDOWBOX(...) {}
 #define LOG_ERROR(...) {}
 #else
 #define LOG_DEBUG(...) LOG_MESSAGE(TourBillon::Log::TYPE_LOG_DEBUG,__VA_ARGS__);
-#define LOG_WARNING(...) LOG_MESSAGE(TourBillon::Log::TYPE_LOG_DEBUG,__VA_ARGS__);
+#define LOG_WARNING(...) LOG_MESSAGE(TourBillon::Log::TYPE_LOG_WARNING,__VA_ARGS__);
+#define LOG_WINDOWBOX(...) LOG_MESSAGE(TourBillon::Log::TYPE_LOG_WINDOWBOX,__VA_ARGS__);
 #define LOG_ERROR(...) LOG_MESSAGE(TourBillon::Log::TYPE_LOG_ERROR,__VA_ARGS__);
 #endif

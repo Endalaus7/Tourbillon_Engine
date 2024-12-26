@@ -115,7 +115,7 @@ namespace TBMath
 
     //透视矩阵
     //fovy:y方向fov aspect:宽高比 near:近平面 far:远平面
-    FORCE_INLINE Mat44 perspective(float fovy, float aspect, float near, float far) 
+    FORCE_INLINE Mat44 perspective(float fovy, float aspect, float nearPlane, float farPlane) 
     {
         Mat44 result;
         float tanHalfFovy = tan(fovy / 2.0f);
@@ -131,8 +131,8 @@ namespace TBMath
         result.m[1][3] = 0.0f;
         result.m[2][0] = 0.0f;
         result.m[2][1] = 0.0f;
-        result.m[2][2] = (far + near) / (near - far);
-        result.m[2][3] = (2.0f * far * near) / (near - far);
+        result.m[2][2] = (farPlane + nearPlane) / (nearPlane - farPlane);
+        result.m[2][3] = (2.0f * farPlane * nearPlane) / (nearPlane - farPlane);
         result.m[3][0] = 0.0f;
         result.m[3][1] = 0.0f;
         result.m[3][2] = -1.0f;
@@ -141,11 +141,11 @@ namespace TBMath
         return result;
     }
 
-    FORCE_INLINE float ToRadians(float degrees)
+    static float ToRadians(float degrees)
     {
         return degrees * (M_PI / 180.0f);
     }
-    FORCE_INLINE float ToDegrees(float radians)
+    static float ToDegrees(float radians)
     {
         return radians * (180.0f / M_PI);
     }

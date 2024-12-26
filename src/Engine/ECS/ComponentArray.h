@@ -20,7 +20,7 @@ namespace TourBillon
 	class ComponentArray:public IComponentArray
 	{
 	public:
-		void InsertData(Entity entity, T component)
+		void InsertData(Entity entity, T& component)
 		{
 			if (mEntityToIndexMap.find(entity) != mEntityToIndexMap.end())
 			{

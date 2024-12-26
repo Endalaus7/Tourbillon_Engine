@@ -401,23 +401,29 @@ TourBillon::RHICommandBuffer* TourBillon::VulkanRHI::getCommandBuffer(uint32_t w
     return &m_commandBuffers[windowindex][m_current_frame_index];
 }
 
+void TourBillon::VulkanRHI::DrawViewport(RHIDrawInfo& draw_info)
+{
+    VkCommandBuffer commandBuffer = m_commandBuffers[draw_info.windowIndex][m_current_frame_index].commandbuffer;
+
+    VkViewport viewport{};
+    viewport.x = 0.0f;
+    viewport.y = 0.0f;
+    viewport.width = (float)m_wapChainExtent[draw_info.windowIndex].width;
+    viewport.height = (float)m_wapChainExtent[draw_info.windowIndex].height;
+    viewport.minDepth = 0.0f;
+    viewport.maxDepth = 1.0f;
+    vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+    VkRect2D scissor{};
+    scissor.offset = { 0, 0 };
+    scissor.extent = m_wapChainExtent[draw_info.windowIndex];
+    vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+}
+
 void TourBillon::VulkanRHI::DrawMesh(RHIDrawInfo& draw_info, RHIDrawMeshInfo& draw_mesh_info)
 {
 	VkCommandBuffer commandBuffer = m_commandBuffers[draw_info.windowIndex][m_current_frame_index].commandbuffer;
-
-	VkViewport viewport{};
-	viewport.x = 0.0f;
-	viewport.y = 0.0f;
-	viewport.width = (float)m_wapChainExtent[draw_info.windowIndex].width;
-	viewport.height = (float)m_wapChainExtent[draw_info.windowIndex].height;
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
-	vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-	VkRect2D scissor{};
-	scissor.offset = { 0, 0 };
-	scissor.extent = m_wapChainExtent[draw_info.windowIndex];
-	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
     std::vector<VkBuffer> vertexBuffer;
 	VulkanBuffer* vk_vertex_buffer = dynamic_cast<VulkanBuffer*>(draw_mesh_info.vertex_buffer->buffer);
@@ -432,9 +438,9 @@ void TourBillon::VulkanRHI::DrawMesh(RHIDrawInfo& draw_info, RHIDrawMeshInfo& dr
 
     VulkanPipeline* vk_pipeline = dynamic_cast<VulkanPipeline*>(draw_info.pipeline);
     VulkanDescriptorSet* vk_descriptorset = dynamic_cast<VulkanDescriptorSet*>(draw_info.descriptor_sets[m_current_frame_index]);
-    for(int i=0;i< draw_info.uboDynamicOffsets.size();i++)
+    for(int i=0;i< draw_mesh_info.uboDynamicOffsets.size();i++)
     {
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline->pipelinelayout, 0, 1, &vk_descriptorset->descriptor, 1, &draw_info.uboDynamicOffsets[i]);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline->pipelinelayout, 0, 1, &vk_descriptorset->descriptor, 1, &draw_mesh_info.uboDynamicOffsets[i]);
         vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(draw_mesh_info.indices_count), 1, 0, 0, 0);
     }
     //vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, vk_pipeline->pipelinelayout, 0, 1, &vk_descriptorset->descriptor, draw_info.uboDynamicOffsets.size(), draw_info.uboDynamicOffsets.data());
@@ -1290,7 +1296,7 @@ void TourBillon::VulkanRHI::updateBuffer(void* data, uint32_t windowindex, RHIBu
     VulkanBuffer* vk_buffer = dynamic_cast<VulkanBuffer*>(buffer);
     size_t chunkSize = 65536;
     for (size_t ioffset = 0; ioffset < totalsize - totaloffset; ioffset += chunkSize) {
-        size_t isize = std::min(chunkSize, totalsize - totaloffset - ioffset);
+        size_t isize = min(chunkSize, totalsize - totaloffset - ioffset);
         vkCmdUpdateBuffer(commandBuffer, vk_buffer->buffer, ioffset, isize, data);
     }
     

@@ -61,7 +61,7 @@ namespace TourBillon
 
 		virtual bool createDescriptorSetLayout(const RHIDescriptorSetLayoutCreateInfo* pCreateInfo, RHIDescriptorSetLayout*& pSetLayout) = 0;
 
-
+		virtual void DrawViewport(RHIDrawInfo& draw_info) = 0;
 		virtual void DrawMesh(RHIDrawInfo& draw_info, RHIDrawMeshInfo& draw_mesh_info) = 0;
 		virtual void DrawDebug() = 0;
 	public:

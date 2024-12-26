@@ -11,5 +11,7 @@ namespace TourBillon
 	{
 	public:
 		virtual void init()override;
+
+		void loadPicture(const CEvent&);
 	};
 }

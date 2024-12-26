@@ -9,6 +9,7 @@
 #include "ComponentManager.h"
 #include "EntityManager.h"
 #include "EventManager.h"
+#include "Assets.h"
 //Coordinator
 
 namespace TourBillon
@@ -71,7 +72,7 @@ namespace TourBillon
 		{
 			return mComponentManager->GetComponentEntities<T>();
 		}
-		
+
 		template<typename T>
 		ComponentType GetComponentType()
 		{
@@ -90,6 +91,7 @@ namespace TourBillon
 			mSystemManager->SetSignature<T>(signature);
 		}
 
+		//需要注意add顺序，先add的先执行
 		void AddListener(Events::EventType type, std::function<void(const CEvent&)> callback);
 		void SendEvent(Events::EventType type, void* data = nullptr, size_t datasize = 0);
 

@@ -41,6 +41,43 @@ void TourBillon::MainCameraPass::beforeDraw(float dt, RHIDrawInfo& drawinfo)
 {
 	updateUboData();
 	//updateUniformDescriptorSet();
+	 
+	//每种mesh只在meshinfo中添加一次
+	const auto& geo_components = ECSManager::Instance()->GetComponentEntities<GeometryShared>();
+	//drawinfo.drawMeshinfos.resize(geo_components.size());
+	uint32_t meshindex = 0;
+	uint32_t entityindex = 0;
+	std::unordered_map<Geometry*, uint32_t> loadRecord;
+	for (auto& entity : geo_components)
+	{
+		auto& meshptr = ECSManager::Instance()->GetComponent<GeometryShared>(entity);
+
+		Geometry* geometry = dynamic_cast<Geometry*>(meshptr.getData());
+
+		RHIDrawMeshInfo draw_mesh_info;
+		
+		auto loaditr = loadRecord.find(geometry);
+		if (loaditr == loadRecord.end())
+		{
+			
+			draw_mesh_info.vertex_buffer = geometry->vertexBuffer;
+			draw_mesh_info.index_buffer = geometry->indexBuffer;
+			draw_mesh_info.indices_count = geometry->indexArray.size() * 3;
+			draw_mesh_info.uboDynamicOffsets.push_back(entityindex * sizeof(UniformBufferDynamicObject));
+
+			loadRecord.insert({ geometry, meshindex });
+			meshindex++;
+			drawinfo.drawMeshinfos.push_back(draw_mesh_info);
+		}
+		else
+		{
+			drawinfo.drawMeshinfos[loaditr->second].uboDynamicOffsets.push_back(entityindex * sizeof(UniformBufferDynamicObject));
+		}
+		
+		//drawinfo.drawMeshinfos[meshindex].uboDynamicOffsets.push_back(entityindex * sizeof(UniformBufferDynamicObject));
+		
+		entityindex++;
+	}
 }
 
 void TourBillon::MainCameraPass::drawPass(float dt, RHIDrawInfo& drawinfo)
@@ -59,12 +96,7 @@ void TourBillon::MainCameraPass::drawPass(float dt, RHIDrawInfo& drawinfo)
 		
 	}
 
-	const auto& trans_components = ECSManager::Instance()->GetComponentEntities<Transfrom>();
-	drawinfo.uboDynamicOffsets.resize(trans_components.size());
-	for (int index = 0; index < trans_components.size(); index++)
-	{
-		drawinfo.uboDynamicOffsets[index] = index * sizeof(UniformBufferDynamicObject);
-	}
+	
 	//drawinfo.descriptor_sets = m_descriptor.descriptor_sets;
 
 	updateUboBuffer(drawinfo);
@@ -72,9 +104,10 @@ void TourBillon::MainCameraPass::drawPass(float dt, RHIDrawInfo& drawinfo)
 	//updateDescriptorSet();
 	drawinfo.drawEvents.addCallback([&](const CEvent&) {
 
-		//for (auto& drawmeshinfo : drawinfo.drawMeshinfos)
+		m_rhi->DrawViewport(drawinfo);
+		for (auto& drawmeshinfo : drawinfo.drawMeshinfos)
 		{
-			m_rhi->DrawMesh(drawinfo, drawinfo.drawMeshinfos[0]);
+			m_rhi->DrawMesh(drawinfo, drawmeshinfo);
 		}
 
 		});

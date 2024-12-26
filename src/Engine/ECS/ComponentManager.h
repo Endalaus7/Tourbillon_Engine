@@ -83,7 +83,7 @@ namespace TourBillon
 		}
 
 		template<typename T>
-		void AddComponent(Entity entity, T component)
+		void AddComponent(Entity entity, T& component)
 		{
 			GetComponentArray<T>()->InsertData(entity, component);
 		}

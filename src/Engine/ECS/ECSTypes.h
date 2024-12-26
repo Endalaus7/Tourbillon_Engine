@@ -8,8 +8,10 @@ namespace TourBillon {
 	{
 		enum EventType
 		{
-			LOAD_IMAGE,//stbi_uc*
-			LOAD_MODEL,
+			LOAD_IMAGE,//TextureShared*
+			LOAD_IMAGE_FINISHED,//Texture*
+			LOAD_MODEL,//GeometryShared*
+			LOAD_MODEL_FINISHED,
 
 
 			KEY_CHANGE,//entity id

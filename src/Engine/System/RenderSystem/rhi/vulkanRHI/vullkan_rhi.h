@@ -38,6 +38,7 @@ namespace TourBillon
         virtual FORCE_INLINE int getCurrentFrameIndex()override { return m_current_frame_index; }
         virtual FORCE_INLINE int getMaxFrameIndex()override { return s_max_frames_in_flight; }
 
+        virtual void DrawViewport(RHIDrawInfo& draw_info)override;
         virtual void DrawMesh(RHIDrawInfo& draw_info, RHIDrawMeshInfo& draw_mesh_info)override;
         virtual void DrawDebug()override;
 

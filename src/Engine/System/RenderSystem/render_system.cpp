@@ -4,6 +4,7 @@
 #include "rhi/rhi_window.h"
 #include "render/render_pipeline.h"
 #include "event.hpp"
+#include "Assets.h"
 
 #include "ECSManager.h"
 
@@ -61,7 +62,6 @@ void TourBillon::RenderSystem::rendLoop(std::function<void(float)> beforeRender,
     std::chrono::steady_clock::time_point lastTime = std::chrono::steady_clock::now();
     while (!shouldClose())
     {
-        
         // 获取当前时间
         std::chrono::steady_clock::time_point currentTime = std::chrono::steady_clock::now();
 
@@ -69,7 +69,13 @@ void TourBillon::RenderSystem::rendLoop(std::function<void(float)> beforeRender,
         std::chrono::duration<float> deltaTime = std::chrono::duration_cast<std::chrono::duration<float>>(currentTime - lastTime);
         lastTime = currentTime;
 
-        beforeRender(deltaTime.count());
+        float dt = deltaTime.count();
+
+        AssetsManager::Instance()->tickRender(dt);
+
+
+
+        beforeRender(dt);
 
         for (auto rhiwindow : m_rhiWindows)
             rhiwindow->pollEvents();
@@ -77,30 +83,14 @@ void TourBillon::RenderSystem::rendLoop(std::function<void(float)> beforeRender,
 
 		RHIDrawInfo drawinfo;
 
-        //此处需要修改
-        //每种mesh只需要在meshinfo中添加一次
-        const auto& geo_components = ECSManager::Instance()->GetComponentEntities<Geometry>();
-        drawinfo.drawMeshinfos.resize(geo_components.size());
-        uint32_t index = 0;
-        for (auto& entity : geo_components)
-        {
-            auto& geometry = ECSManager::Instance()->GetComponent<Geometry>(entity);//换成资源获取
-
-            drawinfo.drawMeshinfos[index].vertex_buffer = geometry.vertexBuffer;
-            drawinfo.drawMeshinfos[index].index_buffer = geometry.indexBuffer;
-            drawinfo.drawMeshinfos[index].indices_count = geometry.indexArray.size() * 3;
-
-            index++;
-            //m_rhi->DrawMesh(draw_mesh_info);
-            //m_rhi->DrawDebug();
-        }
+       
 
         //drawinfo.drawEvents.addCallback([&](const CEvent&) {
         //    
         //    }
         //);
         
-        float dt = deltaTime.count();
+        
         //多窗口渲染
         m_renderPipeline->BeforeFrameDraw(dt, drawinfo);
         #pragma omp parallel for

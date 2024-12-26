@@ -11,7 +11,7 @@
 
 namespace TourBillon
 {
-	void test();
+	//void test();
 
 	class RHIBufferResource;
 
@@ -46,7 +46,7 @@ namespace TourBillon
 	//static mesh
 	struct Geometry :public AssetsData
 	{
-		STATIC_PROPERTY_CLASS_BEGIN(GeometryComponent)
+		STATIC_PROPERTY_CLASS_BEGIN(Geometry)
 			STATIC_PROPERTY_DEF(ReflectPath, modelPath)//可以是相对路径
 			//STATIC_PROPERTY_DEF(AABBBox, geometryAABB)//TODO
 			STATIC_PROPERTY_DEF_ARRAY(Vertex, vertexArray)
@@ -58,7 +58,11 @@ namespace TourBillon
 		RHIBufferResource* indexBuffer = nullptr;
 	};
 
-
+	struct GeometryShared :public Assets
+	{
+		~GeometryShared()override {}
+		virtual Geometry* loadData()override;
+	}; 
 
 	//struct TestComponent : public Transfrom
 	//{

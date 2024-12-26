@@ -114,6 +114,9 @@ namespace TourBillon
 		uint32_t indices_count;
 		RHIBufferResource* vertex_buffer;
 		RHIBufferResource* index_buffer;
+
+		
+		TBVector<uint32_t> uboDynamicOffsets;//偏移量
 	};
 
 	struct RHIDrawInfo
@@ -124,7 +127,7 @@ namespace TourBillon
 			pipeline = nullptr;
 			renderpass = nullptr;
 			framebuffers = nullptr;
-			descriptor_sets.clear();
+			//descriptor_sets.clear();
 		}
 
 		uint32_t windowIndex = 0;
@@ -134,9 +137,9 @@ namespace TourBillon
 		RHIFramebuffer* framebuffers;
 		CEvent preEvents;
 		CEvent drawEvents;
-		TBVector<RHIDescriptorSet*> descriptor_sets;
-		TBVector<uint32_t> uboDynamicOffsets;
+		
 		TBVector<RHIDrawMeshInfo> drawMeshinfos;//换TBAlignedArray,每种mesh只要一份
+		TBVector<RHIDescriptorSet*> descriptor_sets;//描述符集
 	};
 	
 }
