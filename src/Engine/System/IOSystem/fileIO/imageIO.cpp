@@ -3,6 +3,9 @@
 
 #include "components/MaterialComponent.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include <stb_image.h>
+
 void TourBillon::imageIO::init()
 {
 	//stbi_load();

@@ -13,7 +13,7 @@ namespace TourBillon
 	using Signature = std::bitset<MAX_COMPONENTS>;//ComponentType对应于签名中的一个位
 
 	using Entity = std::uint32_t;
-	const Entity MAX_ENTITIES = 50000;
+	const Entity MAX_ENTITIES = 4096;
 
 	using KeyType = std::uint32_t;
 	const KeyType MAX_KEYVALUE = 400;

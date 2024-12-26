@@ -37,7 +37,7 @@ namespace TourBillon
 			mComponentManager->RegisterComponent<T>();
 		}
 		template<typename T>
-		void AddComponent(Entity entity, T component)
+		void AddComponent(Entity entity, T& component)
 		{
 			mComponentManager->AddComponent<T>(entity, component);
 			auto signature = mEntityManager->GetSignature(entity);

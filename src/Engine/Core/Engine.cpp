@@ -69,7 +69,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	//手动初始化几何体
 	//std::vector<Entity> entities(MAX_ENTITIES - 1);
 	int index = 0;
-	std::vector<Entity> entities(1000);
+	std::vector<Entity> entities(8);
 
 	Geometry* mesh = new Geometry;
 	Vertex v1(Point3d(-0.5f, -0.5f, 0.f), Point2d(0.0f, 0.0f), ColorRGBA(1.0f, 0.0f, 0.0f, 1.0f));
@@ -98,7 +98,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 		Transfrom trans;
 		trans.rotation = TBMath::Vec3(0, 0, 0);
 		trans.scale = TBMath::Vec3(1, 1, 1);
-		trans.translation = TBMath::Vec3(1.1f * (index - 20), 0, 0);
+		trans.translation = TBMath::Vec3(1.1f * (index - 2), 0, 0);
 
 		GeometryShared meshptr;
 		meshptr.setAssetData("Plane", mesh);

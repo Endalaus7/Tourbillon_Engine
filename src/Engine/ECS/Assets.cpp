@@ -1,9 +1,26 @@
 #include "Assets.h"
 
 
+TourBillon::Assets::Assets()
+{
+	setAssetData("",nullptr);
+}
+
+TourBillon::Assets::Assets(const Assets& other)
+{
+	setAssetData(other.assetpath, other.assetdata);
+}
+
 TourBillon::Assets::~Assets()
 {
-	//release();
+	release();
+}
+
+
+TourBillon::Assets& TourBillon::Assets::operator=(const Assets& other)
+{
+	setAssetData(other.assetpath, other.assetdata);
+	return *this;
 }
 
 const ReflectPath& TourBillon::Assets::getAssetPath()

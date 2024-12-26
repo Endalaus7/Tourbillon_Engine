@@ -22,7 +22,11 @@ namespace TourBillon
 	public:
 		friend class AssetsManager;
 
+		Assets();
+		Assets(const Assets& other);
 		virtual ~Assets();
+
+		Assets& operator=(const Assets& other);
 
 		// Õ∑≈∑Ω Ω
 		enum DeleteType

@@ -1305,6 +1305,7 @@ void TourBillon::VulkanRHI::updateBuffer(void* data, uint32_t windowindex, RHIBu
 
 void TourBillon::VulkanRHI::createVertexBuffer(void* srcdata, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory)
 {
+    if (size == 0)return;
     VkDeviceSize bufferSize = size;
 	VulkanBuffer* vk_buffer = new VulkanBuffer;// dynamic_cast<VulkanBuffer*>(buffer);
 	VulkanDeviceMemory* vk_buffer_memory = new VulkanDeviceMemory;// dynamic_cast<VulkanDeviceMemory*>(buffer_memory);
@@ -1332,6 +1333,7 @@ void TourBillon::VulkanRHI::createVertexBuffer(void* srcdata, RHIDeviceSize size
 
 void TourBillon::VulkanRHI::createIndexBuffer(void* srcdata, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory)
 {
+    if (size == 0)return;
     VkDeviceSize bufferSize = size;
     VulkanBuffer* vk_buffer = new VulkanBuffer;// dynamic_cast<VulkanBuffer*>(buffer);
     VulkanDeviceMemory* vk_buffer_memory = new VulkanDeviceMemory;// dynamic_cast<VulkanDeviceMemory*>(buffer_memory);
@@ -1358,6 +1360,7 @@ void TourBillon::VulkanRHI::createIndexBuffer(void* srcdata, RHIDeviceSize size,
 
 void TourBillon::VulkanRHI::createUniformBuffer(void* mapdata, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory)
 {
+    if (size == 0)return;
     VkDeviceSize bufferSize = size;
     VulkanBuffer* vk_buffer = new VulkanBuffer;// dynamic_cast<VulkanBuffer*>(buffer);
     VulkanDeviceMemory* vk_buffer_memory = new VulkanDeviceMemory;// dynamic_cast<VulkanDeviceMemory*>(buffer_memory);

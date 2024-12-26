@@ -6,6 +6,7 @@
 #include "components/KeysComponent.h"
 #include "components/CameraComponent.h"
 #include "components/WindowComponent.h"
+#include "components/GeometryComponent.h"
 #include "GLFW/glfw3.h"
 
 void TourBillon::keyIO::init()
@@ -40,6 +41,13 @@ void TourBillon::keyIO::updateKeyState(const CEvent& event)
 	{
 		auto& camera = ECSManager::Instance()->GetComponent<Camera3D>(window.camera);
 		camera.move(camera.getDirection().normalizedCopy() * -0.1);
+	}
+	if (buttons.keyvalue[GLFW_KEY_Q])
+	{
+		static int index = 2;
+		ECSManager::Instance()->RemoveComponent<GeometryShared>(index);
+		ECSManager::Instance()->RemoveComponent<Transfrom>(index);
+		index++;
 	}
 }
 
