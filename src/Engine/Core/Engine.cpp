@@ -101,7 +101,10 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 		trans.translation = TBMath::Vec3(1.1f * (index - 2), 0, 0);
 
 		GeometryShared meshptr;
+		meshptr.setDeleteType(Assets::Delay_Render_Delete);
+		meshptr.setDelayFrame(3);
 		meshptr.setAssetData("Plane", mesh);
+
 
 		ECSManager::Instance()->AddComponent<Transfrom>(entity, trans);
 		ECSManager::Instance()->AddComponent<GeometryShared>(entity, meshptr);

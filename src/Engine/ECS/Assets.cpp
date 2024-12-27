@@ -17,12 +17,6 @@ TourBillon::Assets::~Assets()
 }
 
 
-TourBillon::Assets& TourBillon::Assets::operator=(const Assets& other)
-{
-	setAssetData(other.assetpath, other.assetdata);
-	return *this;
-}
-
 const ReflectPath& TourBillon::Assets::getAssetPath()
 {
 	return assetpath;

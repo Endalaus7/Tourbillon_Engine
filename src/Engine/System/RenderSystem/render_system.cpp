@@ -71,14 +71,14 @@ void TourBillon::RenderSystem::rendLoop(std::function<void(float)> beforeRender,
 
         float dt = deltaTime.count();
 
+        for (auto rhiwindow : m_rhiWindows)
+            rhiwindow->pollEvents();
+
         AssetsManager::Instance()->tickRender(dt);
-
-
 
         beforeRender(dt);
 
-        for (auto rhiwindow : m_rhiWindows)
-            rhiwindow->pollEvents();
+        
         //m_rhi->UpdateDraw(deltaTime.count());
 
 		RHIDrawInfo drawinfo;
