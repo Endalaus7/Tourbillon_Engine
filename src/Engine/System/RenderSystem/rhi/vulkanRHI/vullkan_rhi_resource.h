@@ -45,7 +45,10 @@ namespace TourBillon
 	{
 		VkFramebuffer framebuffer;
 	};
-
+	struct VulkanImage :public RHIImage
+	{
+		VkImage image;
+	};
 	struct VulkanImageView :public RHIImageView
 	{
 		VkImageView imageview;

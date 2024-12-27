@@ -34,9 +34,9 @@ namespace TourBillon
 			mIndexToEntityMap[newIndex] = entity;
 			mComponentArray[newIndex] = component;
 
-			if (!std::is_base_of<Assets, decltype(mComponentArray[newIndex])>::value)
+			if constexpr (std::is_base_of<Assets, T>::value)
 			{
-				static_cast<decltype(mComponentArray[newIndex])>(mComponentArray[newIndex]).insertData();
+				static_cast<decltype(component)>(component).insertData();
 			}
 
 			++mSize;
@@ -53,7 +53,7 @@ namespace TourBillon
 			
 			size_t indexOfRemovedEntity = mEntityToIndexMap[entity];
 			size_t indexOfLastElement = mSize - 1;
-			if (!std::is_base_of<Assets, decltype(mComponentArray[indexOfRemovedEntity])>::value)
+			if constexpr (std::is_base_of<Assets, decltype(mComponentArray[indexOfRemovedEntity])>::value)
 			{
 				static_cast<decltype(mComponentArray[indexOfRemovedEntity])>(mComponentArray[indexOfRemovedEntity]).releaseData();
 			}

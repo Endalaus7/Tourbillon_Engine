@@ -44,10 +44,10 @@ namespace TourBillon
 		STATIC_PROPERTY_CLASS_END()
 	};
 	
-	struct Material
+	struct Material:public Component
 	{
 		STATIC_PROPERTY_CLASS_BEGIN(Material)
-			STATIC_PROPERTY_DEF(ColorRGBA, color)
+			STATIC_PROPERTY_DEF(ColorRGBA, basecolor)
 			STATIC_PROPERTY_DEF(TextureShared, MainTexture)
 			STATIC_PROPERTY_DEF(Shader, shaders)
 			//...

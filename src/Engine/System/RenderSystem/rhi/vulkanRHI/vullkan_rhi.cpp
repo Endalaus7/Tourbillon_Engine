@@ -358,8 +358,8 @@ void TourBillon::VulkanRHI::AfterFrameDraw(float dt)
 
 void TourBillon::VulkanRHI::createTextureImage(void* imgdata, size_t imageSize, int imageWidth, int imageHeight, int texChannels, RHIImage*& image_buffer, RHIDeviceMemory*& buffer_memory)
 {
-    VkImage textureImage;
-    VkDeviceMemory textureImageMemory;
+    VulkanImage* vk_textureImage = new VulkanImage;
+    VulkanDeviceMemory* vk_textureImageMemory = new VulkanDeviceMemory;
 
     if (!imgdata)
     {
@@ -375,17 +375,20 @@ void TourBillon::VulkanRHI::createTextureImage(void* imgdata, size_t imageSize, 
     memcpy(data, imgdata, static_cast<size_t>(imageSize));
     vkUnmapMemory(m_device, stagingBufferMemory);
 
-    createImage(imageWidth, imageHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+    createImage(imageWidth, imageHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vk_textureImage->image, vk_textureImageMemory->devicememory);
 
     VulkanCommandBuffer* vk_commandBuffer = (VulkanCommandBuffer*)beginSingleTimeCommands(0);
-    transitionImageLayout(vk_commandBuffer->commandbuffer, textureImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    copyBufferToImage(vk_commandBuffer->commandbuffer, stagingBuffer, textureImage, static_cast<uint32_t>(imageWidth), static_cast<uint32_t>(imageHeight));
-    transitionImageLayout(vk_commandBuffer->commandbuffer, textureImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    transitionImageLayout(vk_commandBuffer->commandbuffer, vk_textureImage->image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    copyBufferToImage(vk_commandBuffer->commandbuffer, stagingBuffer, vk_textureImage->image, static_cast<uint32_t>(imageWidth), static_cast<uint32_t>(imageHeight));
+    transitionImageLayout(vk_commandBuffer->commandbuffer, vk_textureImage->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     endSingleTimeCommands(vk_commandBuffer, 0);
 
     vkDestroyBuffer(m_device, stagingBuffer, nullptr);
     vkFreeMemory(m_device, stagingBufferMemory, nullptr);
+
+    image_buffer = vk_textureImage;
+    buffer_memory = vk_textureImageMemory;
 }
 
 

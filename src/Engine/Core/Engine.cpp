@@ -19,7 +19,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	ECSManager::Instance()->RegisterComponent<RenderWindow>();
 	ECSManager::Instance()->RegisterComponent<GeometryShared>();
 	ECSManager::Instance()->RegisterComponent<Camera3D>();
-	//ECSManager::Instance()->RegisterComponent<Material>();
+	ECSManager::Instance()->RegisterComponent<Material>();
 	ECSManager::Instance()->RegisterComponent<Transfrom>();
 	ECSManager::Instance()->RegisterComponent<Buttons>();
 	ECSManager::Instance()->RegisterComponent<Mouse>();
@@ -104,6 +104,8 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 		meshptr.setDeleteType(Assets::Delay_Render_Delete);
 		meshptr.setDelayFrame(3);
 		meshptr.setAssetData("Plane", mesh);
+
+		
 
 
 		ECSManager::Instance()->AddComponent<Transfrom>(entity, trans);

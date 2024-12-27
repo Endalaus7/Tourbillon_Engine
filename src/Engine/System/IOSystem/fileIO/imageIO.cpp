@@ -33,7 +33,7 @@ void TourBillon::imageIO::loadPicture(const CEvent& event)
 	loadingTexture->texChannels = texChannels;
 	texturePtr->setAssetData(loadingTexture);
 
-	ECSManager::Instance()->SendEvent(Events::LOAD_IMAGE_FINISHED, loadingTexture);
+	ECSManager::Instance()->SendEvent(Events::LOAD_IMAGE_FINISHED, texturePtr);
 
 	stbi_image_free(pixel);
 }

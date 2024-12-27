@@ -9,7 +9,7 @@ namespace TourBillon {
 		enum EventType
 		{
 			LOAD_IMAGE,//TextureShared*
-			LOAD_IMAGE_FINISHED,//Texture*
+			LOAD_IMAGE_FINISHED,//TextureShared*
 			LOAD_MODEL,//GeometryShared*
 			LOAD_MODEL_FINISHED,
 
