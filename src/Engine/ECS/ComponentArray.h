@@ -21,7 +21,7 @@ namespace TourBillon
 	class ComponentArray:public IComponentArray
 	{
 	public:
-		void InsertData(Entity entity, T& component)
+		constexpr void InsertData(Entity entity, T& component)
 		{
 			if (mEntityToIndexMap.find(entity) != mEntityToIndexMap.end())
 			{
@@ -33,16 +33,22 @@ namespace TourBillon
 			mEntityToIndexMap[entity] = newIndex;
 			mIndexToEntityMap[newIndex] = entity;
 			mComponentArray[newIndex] = component;
-
-			if constexpr (std::is_base_of<Assets, T>::value)
+			
+			component.insertData();
+			if constexpr(IsReflected_t<T>)
 			{
-				static_cast<decltype(component)>(component).insertData();
+				forEachProperty_rec(component, [&](auto&& fieldName, auto&& value, size_t depth) {
+					if constexpr (std::is_base_of_v<Component, std::remove_reference_t<decltype(value)>>)
+					{
+						((decltype(value))value).insertData();
+					}
+					});
 			}
 
 			++mSize;
 		}
 
-		void RemoveData(Entity entity)
+		constexpr void RemoveData(Entity entity)
 		{
 			if (mEntityToIndexMap.find(entity) == mEntityToIndexMap.end())
 			{
@@ -53,11 +59,20 @@ namespace TourBillon
 			
 			size_t indexOfRemovedEntity = mEntityToIndexMap[entity];
 			size_t indexOfLastElement = mSize - 1;
-			if constexpr (std::is_base_of<Assets, decltype(mComponentArray[indexOfRemovedEntity])>::value)
+			T& component = mComponentArray[indexOfRemovedEntity];
+			
+			if constexpr (IsReflected_t<T>)
 			{
-				static_cast<decltype(mComponentArray[indexOfRemovedEntity])>(mComponentArray[indexOfRemovedEntity]).releaseData();
+				forEachProperty_rev(component, [&](auto&& fieldName, auto&& value, size_t depth) {
+					if constexpr (std::is_base_of_v<Component, std::remove_reference_t<decltype(value)>>)
+					{
+						((decltype(value))value).releaseData();
+					}
+					});
 			}
-			mComponentArray[indexOfRemovedEntity] = mComponentArray[indexOfLastElement];
+			component.releaseData();
+
+			component = mComponentArray[indexOfLastElement];
 
 			// Update map to point to moved spot
 			Entity entityOfLastElement = mIndexToEntityMap[indexOfLastElement];

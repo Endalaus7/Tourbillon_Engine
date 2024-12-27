@@ -124,17 +124,28 @@ inline constexpr void forEachProperty(T&& obj, F&& f) {
         std::make_index_sequence<std::decay_t<T>::_field_count_>{});
 }
 
-// Recursion
+// 递归回调，父级优先
 template <typename T,typename F>
 inline constexpr void forEachProperty_rec(T&& object, F&& f, size_t depth = 0)
 {
     forEachProperty(std::forward<T>(object), [&](auto&& fieldName, auto&& value) {
         f(fieldName, std::forward<decltype(value)>(value), depth);
-        // 如果 value 可以递归（根据 IsReflected_v 判断），则递归调用
         if constexpr (IsReflected_v(value)) {
             forEachProperty_rec(value, f, depth + 1);
         }
+        
         });
 }
 
+//递归回调，子级优先
+template <typename T, typename F>
+inline constexpr void forEachProperty_rev(T&& object, F&& f, size_t depth = 0)
+{
+	forEachProperty(std::forward<T>(object), [&](auto&& fieldName, auto&& value) {
+		if constexpr (IsReflected_v(value)) {
+            forEachProperty_rev(value, f, depth + 1);
+		}
+        f(fieldName, std::forward<decltype(value)>(value), depth);
+		});
+}
 

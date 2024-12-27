@@ -62,11 +62,12 @@ void TourBillon::Assets::release()
 
 void TourBillon::Assets::insertData()
 {
-	//release();
+	//Component::insertData();
 	AssetsManager::Instance()->registerAsset(this);
 }
 void TourBillon::Assets::releaseData()
 {
+	//Component::releaseData();
 	release();
 }
 

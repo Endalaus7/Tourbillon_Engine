@@ -7,19 +7,16 @@
 
 namespace TourBillon
 {
-	//class IComponent //提供给外界的接口，对组件进行操作
-	//{
-	//	virtual void tick(float dt) = 0;
-	//};
-
-	
-	class Component// :public IComponent	//组件实体
+	class Component
 	{
 	public:
 		virtual void tick(float dt) {}
-		virtual void insertData() {}
-		virtual void releaseData() {}
+		virtual void insertData(){}
+		virtual void releaseData(){}
 	protected:
 	};
+
+	
+
 }
 
