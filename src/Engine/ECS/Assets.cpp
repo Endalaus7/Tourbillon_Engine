@@ -3,17 +3,17 @@
 
 TourBillon::Assets::Assets()
 {
-	setAssetData("",nullptr);
+	//setAssetData("",nullptr);
 }
 
 TourBillon::Assets::Assets(const Assets& other)
 {
-	setAssetData(other.assetpath, other.assetdata);
+	//setAssetData(other.assetpath, other.assetdata);
 }
 
 TourBillon::Assets::~Assets()
 {
-	release();
+	//release();
 }
 
 
@@ -30,9 +30,9 @@ const ReflectPath& TourBillon::Assets::getAssetPath()
 
 void TourBillon::Assets::setAssetPath(const ReflectPath& path)
 {
-	release();
+	//release();
 	assetpath = path;
-	AssetsManager::Instance()->registerAsset(this);
+	//AssetsManager::Instance()->registerAsset(this);
 	
 }
 
@@ -43,10 +43,10 @@ void TourBillon::Assets::setAssetData(const ReflectPath& name, AssetsData* data)
 	//	LOG_WINDOWBOX("Name ["+ name +"] has been registered");
 	//	return;
 	//}
-	release();
+	//release();
 	assetpath = name;
 	assetdata = data;
-	AssetsManager::Instance()->registerAsset(this, true);
+	//AssetsManager::Instance()->registerAsset(this);
 }
 
 TourBillon::AssetsData* TourBillon::Assets::getData()
@@ -66,7 +66,15 @@ void TourBillon::Assets::release()
 	assetdata = nullptr;
 }
 
-
+void TourBillon::Assets::insertData()
+{
+	//release();
+	AssetsManager::Instance()->registerAsset(this);
+}
+void TourBillon::Assets::releaseData()
+{
+	release();
+}
 
 
 void TourBillon::AssetsManager::tickRender(float dt)
@@ -112,7 +120,7 @@ uint32_t TourBillon::AssetsManager::getRef(const ReflectPath& path)
 	return m_refs[path];
 }
 
-bool TourBillon::AssetsManager::registerAsset(Assets* asset, bool usedata)
+bool TourBillon::AssetsManager::registerAsset(Assets* asset)
 {
 	if(!asset)
 		return false;
@@ -125,11 +133,8 @@ bool TourBillon::AssetsManager::registerAsset(Assets* asset, bool usedata)
 		return true;
 	}
 	
-	if (usedata)
-	{
-		m_refs.insert({ asset->getAssetPath(),1 });
-		return true;
-	}
+	m_refs.insert({ asset->getAssetPath(),1 });
+	return true;
 
 	//优化：如果注册data在待删除列表，直接使用
 	for (auto deferdelete_itr = m_DeferredDeleteDatas.begin(); deferdelete_itr != m_DeferredDeleteDatas.end(); deferdelete_itr++)
@@ -142,17 +147,18 @@ bool TourBillon::AssetsManager::registerAsset(Assets* asset, bool usedata)
 		}
 	}
 
-
-	//没有data，加载资源
-	
-	bool loadResult = asset->loadData();
-
-	if (!loadResult)
+	//有资源路径，加载资源
+	if(!asset->assetpath.empty())
 	{
-		LOG_ERROR("load asset error");
-		return false;
+		bool loadResult = asset->loadData();
+
+		if (!loadResult)
+		{
+			LOG_ERROR("load asset error");
+			return false;
+		}
+		m_refs.insert({ asset->getAssetPath(),1 });
 	}
-	m_refs.insert({ asset->getAssetPath(),1 });
 	return true;
 }
 

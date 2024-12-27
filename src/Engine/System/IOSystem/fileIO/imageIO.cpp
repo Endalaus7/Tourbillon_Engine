@@ -23,7 +23,6 @@ void TourBillon::imageIO::loadPicture(const CEvent& event)
 	if (!pixel)
 	{
 		LOG_WARNING("pixle load failed");
-		texturePtr->setAssetData(nullptr);
 		return;
 	}
 		

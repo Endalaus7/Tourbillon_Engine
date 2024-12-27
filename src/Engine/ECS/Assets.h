@@ -47,7 +47,8 @@ namespace TourBillon
 		AssetsData* getData();
 		void release();//Ωˆ Õ∑≈÷∏’Î
 
-		
+		virtual void insertData()override;
+		virtual void releaseData()override;
 		
 		void setDelayFrame(uint32_t frame) { m_delayFrame = frame; }
 		void setDeleteType(DeleteType type) { deleteType = type; }
@@ -80,8 +81,8 @@ namespace TourBillon
 
 	private:
 		uint32_t getRef(const ReflectPath& path);
-		//if usedata, not load from path
-		bool registerAsset(Assets* asset, bool usedata = false);
+		//
+		bool registerAsset(Assets* asset);
 		//if m_ref == 0,return true(true means delete data)
 		bool releaseAsset(Assets* asset);
 		//force delete all asset

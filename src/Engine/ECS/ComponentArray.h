@@ -2,6 +2,7 @@
 #include "ECSCommon.h"
 #include "Component.h"
 #include <unordered_map>
+#include "Assets.h"
 //管理Component的类，实现紧凑排布，不需要if(vaild)检查
 //index:实体对应的组件数组索引
 
@@ -32,6 +33,12 @@ namespace TourBillon
 			mEntityToIndexMap[entity] = newIndex;
 			mIndexToEntityMap[newIndex] = entity;
 			mComponentArray[newIndex] = component;
+
+			if (!std::is_base_of<Assets, decltype(mComponentArray[newIndex])>::value)
+			{
+				static_cast<decltype(mComponentArray[newIndex])>(mComponentArray[newIndex]).insertData();
+			}
+
 			++mSize;
 		}
 
@@ -43,8 +50,13 @@ namespace TourBillon
 				return;
 			}
 
+			
 			size_t indexOfRemovedEntity = mEntityToIndexMap[entity];
 			size_t indexOfLastElement = mSize - 1;
+			if (!std::is_base_of<Assets, decltype(mComponentArray[indexOfRemovedEntity])>::value)
+			{
+				static_cast<decltype(mComponentArray[indexOfRemovedEntity])>(mComponentArray[indexOfRemovedEntity]).releaseData();
+			}
 			mComponentArray[indexOfRemovedEntity] = mComponentArray[indexOfLastElement];
 
 			// Update map to point to moved spot

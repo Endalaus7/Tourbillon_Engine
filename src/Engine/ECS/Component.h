@@ -15,7 +15,10 @@ namespace TourBillon
 	
 	class Component// :public IComponent	//组件实体
 	{
+	public:
 		virtual void tick(float dt) {}
+		virtual void insertData() {}
+		virtual void releaseData() {}
 	protected:
 	};
 }
