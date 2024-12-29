@@ -53,16 +53,22 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	for(int windowindex = 0;windowindex< engine_init_info.window_num;windowindex++)
 	{
 		Entity camera_entity = ECSManager::Instance()->CreateEntity();
+
+		Transfrom trans;
+		trans.position = TBMath::Vec3(2, 2, -2);
+		trans.rotation = TBMath::Vec3(-45, -45, 0);
+
 		Camera3D camera0;
-		camera0.pos = TBMath::Vec3(2, 2, -2);
-		camera0.lookat = TBMath::Vec3(0, 0, 0);
-		camera0.up = TBMath::Vec3(0, 0, -1);
+		//camera0.pos = TBMath::Vec3(2, 2, -2);
+		//camera0.lookat = TBMath::Vec3(0, 0, 0);
+		//camera0.up = TBMath::Vec3(0, 0, -1);
 		camera0.isOrthographic = false;
 		camera0.fovX = 60;
 		camera0.fovY = ((float)engine_init_info.window_width / (float)engine_init_info.window_width) * camera0.fovX;
 		camera0.nearClip = 0.1f;
 		camera0.farClip = 100.0f;
 		ECSManager::Instance()->AddComponent<Camera3D>(camera_entity, camera0);
+		ECSManager::Instance()->AddComponent<Transfrom>(camera_entity, trans);
 		m_renderSystem->SetMainCamera(windowindex, camera_entity);
 	}
 
@@ -98,7 +104,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 		Transfrom trans;
 		trans.rotation = TBMath::Vec3(0, 0, 0);
 		trans.scale = TBMath::Vec3(1, 1, 1);
-		trans.translation = TBMath::Vec3(1.1f * (index - 2), 0, 0);
+		trans.position = TBMath::Vec3(1.1f * (index - 2), 0, 0);
 
 		GeometryShared meshptr;
 		meshptr.setDeleteType(Assets::Delay_Render_Delete);

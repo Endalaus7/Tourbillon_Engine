@@ -24,23 +24,24 @@ void TourBillon::keyIO::updateKeyState(const CEvent& event)
 	
 	if (buttons.keyvalue[GLFW_KEY_A])
 	{
-		auto& camera = ECSManager::Instance()->GetComponent<Camera3D>(window.camera);
-		camera.move(camera.getDirection().normalizedCopy().cross(camera.up.normalizedCopy()) * -0.1);
+		//auto& camera = ECSManager::Instance()->GetComponent<Camera3D>(window.camera);
+		auto& trans = ECSManager::Instance()->GetComponent<Transfrom>(window.camera);
+		trans.move(trans.getright().normalizedCopy() * -0.1);
 	}
 	if (buttons.keyvalue[GLFW_KEY_W])
 	{
-		auto& camera = ECSManager::Instance()->GetComponent<Camera3D>(window.camera);
-		camera.move(camera.getDirection().normalizedCopy() * 0.1);
+		auto& trans = ECSManager::Instance()->GetComponent<Transfrom>(window.camera);
+		trans.move(trans.getforward().normalizedCopy() * 0.1);
 	}
 	if (buttons.keyvalue[GLFW_KEY_D])
 	{
-		auto& camera = ECSManager::Instance()->GetComponent<Camera3D>(window.camera);
-		camera.move(camera.getDirection().normalizedCopy().cross(camera.up.normalizedCopy()) * 0.1);
+		auto& trans = ECSManager::Instance()->GetComponent<Transfrom>(window.camera);
+		trans.move(trans.getright().normalizedCopy() * 0.1);
 	}
 	if (buttons.keyvalue[GLFW_KEY_S])
 	{
-		auto& camera = ECSManager::Instance()->GetComponent<Camera3D>(window.camera);
-		camera.move(camera.getDirection().normalizedCopy() * -0.1);
+		auto& trans = ECSManager::Instance()->GetComponent<Transfrom>(window.camera);
+		trans.move(trans.getforward().normalizedCopy() * -0.1);
 	}
 	if (buttons.keyvalue[GLFW_KEY_Q])
 	{
@@ -58,8 +59,8 @@ void TourBillon::keyIO::updateMouseState(const CEvent& event)
 	auto& window = ECSManager::Instance()->GetComponent<RenderWindow>(mouse.baseWindow);
 	if (mouse.pressRight)
 	{
-		auto& camera = ECSManager::Instance()->GetComponent<Camera3D>(window.camera);
-		camera.rotation(TBMath::ToRadians(-mouse.mouseOffset.y) * 0.1, TBMath::ToRadians(mouse.mouseOffset.x) * 0.1, 0.f);
+		auto& trans = ECSManager::Instance()->GetComponent<Transfrom>(window.camera);
+		trans.rotate(TBMath::Vec3(-mouse.mouseOffset.y * 0.1, mouse.mouseOffset.x * 0.1, 0.f));
 		//camera.rotation(0.001, 0.001, 0.f);
 	}
 }

@@ -1,7 +1,7 @@
 #include "CameraComponent.h"
 #include "Math/trans.hpp"
 #include "Math/quaternion.hpp"
-
+//#include "TransformComponent.h"
 #ifdef _DEBUG
 
 #include <glm/glm.hpp>
@@ -9,7 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #endif // DEBUG
 
-
+#if 0
 void TourBillon::Camera3D::move(const TBMath::Vec3& offset)
 {
 	pos += offset;
@@ -54,7 +54,6 @@ TBMath::Mat33 TourBillon::Camera3D::GetRotationMatrix()
 	return result;
 }
 
-
 TBMath::Mat44 TourBillon::Camera3D::GetVPMatrix()
 {
 	TBMath::Mat44 view_mat = TBMath::lookAt(pos, lookat, up);
@@ -66,6 +65,14 @@ TBMath::Mat44 TourBillon::Camera3D::GetVPMatrix()
 	//proj[1][1] *= -1;
 	//glm::mat4x4 glmret = proj * view;
 	TBMath::Mat44 tbret = proj_mat * view_mat;
-	
+
 	return tbret.transpose();
+}
+#endif
+
+TBMath::Mat44 TourBillon::Camera3D::GetProjMatrix()
+{
+	TBMath::Mat44 proj_mat = TBMath::perspective(TBMath::ToRadians(fovX), fovX / fovY, nearClip, farClip);
+	proj_mat[1][1] *= -1;
+	return proj_mat.transpose();
 }

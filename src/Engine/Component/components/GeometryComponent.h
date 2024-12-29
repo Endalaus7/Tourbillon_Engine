@@ -6,6 +6,7 @@
 #include "Assets.h"
 #include "ColorComponent.h"
 #include "ComponentData.h"
+#include "TransformComponent.h"
 
 //所有与几何相关的组件
 
@@ -27,20 +28,6 @@ namespace TourBillon
 			STATIC_PROPERTY_DEF(ColorRGBA, color)//delete after
 			//...
 		STATIC_PROPERTY_CLASS_END()
-	};
-
-	struct Transfrom :public Component
-	{
-		STATIC_PROPERTY_CLASS_BEGIN(Transfrom)
-			STATIC_PROPERTY_DEF(TBMath::Vec3, translation)
-			STATIC_PROPERTY_DEF(TBMath::Vec3, rotation)
-			STATIC_PROPERTY_DEF(TBMath::Vec3, scale)
-		STATIC_PROPERTY_CLASS_END()
-	public:
-		const TBMath::Mat44& GetModelMatrix();
-		
-	private:
-		TBMath::Mat44 modelMatrix;//m矩阵
 	};
 
 	//static mesh

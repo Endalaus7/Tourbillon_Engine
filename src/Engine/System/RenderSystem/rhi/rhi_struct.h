@@ -135,7 +135,7 @@ namespace TourBillon
 		RHIPipeline* pipeline;
 		RHIRenderPass* renderpass;
 		RHIFramebuffer* framebuffers;
-		CEvent preEvents;
+		CEvent resizeRenderEvents;
 		CEvent drawEvents;
 		
 		TBVector<RHIDrawMeshInfo> drawMeshinfos;//换TBAlignedArray,每种mesh只要一份

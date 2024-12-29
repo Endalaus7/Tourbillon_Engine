@@ -239,8 +239,10 @@ void TourBillon::MainCameraPass::updateUboData()
 
 void TourBillon::MainCameraPass::updateUniformUboData(uint32_t windowindex)
 {
+	Entity entity = m_camera[windowindex];
 	Camera3D& camera = ECSManager::Instance()->GetComponent<Camera3D>(m_camera[windowindex]);
-	cacheUniformObject(camera.GetVPMatrix());
+	Transfrom& trans = ECSManager::Instance()->GetComponent<Transfrom>(m_camera[windowindex]);
+	cacheUniformObject(trans.GetViewMatrix() * camera.GetProjMatrix());
 }
 
 void TourBillon::MainCameraPass::updateUboBuffer(RHIDrawInfo& info)
@@ -273,6 +275,8 @@ void TourBillon::MainCameraPass::updateDescriptorSet()
 void TourBillon::MainCameraPass::dirtyUniformBuffer()
 {
 	uint64_t uboDynamicBufferSize = static_cast<uint64_t>(m_uniform_buffer_dynamic_object_cache.size() * sizeof(UniformBufferDynamicObject));
+	//if(m_uniformbuffer->buffer && m_uniformdynamicbuffer->buffer)
+	//	updateDescriptorSet();
 	m_rhi->createUniformBuffer((void*)&m_uniform_buffer_object, sizeof(UniformBufferObject), m_uniformbuffer->buffer, m_uniformbuffer->buffermemory);
 	m_rhi->createUniformBuffer((void*)m_uniform_buffer_dynamic_object_cache.data(), sizeof(UniformBufferDynamicObject)* m_uniform_buffer_dynamic_object_cache.size(), m_uniformdynamicbuffer->buffer, m_uniformdynamicbuffer->buffermemory);
 	m_renderCount = ECSManager::Instance()->GetComponentSize<Transfrom>();

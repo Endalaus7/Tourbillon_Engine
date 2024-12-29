@@ -163,13 +163,13 @@ bool TourBillon::VulkanRHI::prepareDraw(float dt, RHIDrawInfo& drawinfo)
     if (VK_ERROR_OUT_OF_DATE_KHR == acquire_image_result)
     {
         recreateSwapchain();
-            drawinfo.preEvents.trigger();
+            drawinfo.resizeRenderEvents.trigger();
         return true;
     }
     else if (VK_SUBOPTIMAL_KHR == acquire_image_result)
     {
         recreateSwapchain();
-            drawinfo.preEvents.trigger();
+            drawinfo.resizeRenderEvents.trigger();
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT };
@@ -303,6 +303,7 @@ void TourBillon::VulkanRHI::submitDraw(float dt, RHIDrawInfo& drawinfo)
     if (VK_ERROR_OUT_OF_DATE_KHR == present_result || VK_SUBOPTIMAL_KHR == present_result)
     {
         recreateSwapchain();
+        drawinfo.resizeRenderEvents.trigger();
     }
     else
     {
@@ -329,7 +330,6 @@ void TourBillon::VulkanRHI::UpdateDraw(float dt, RHIDrawInfo& drawinfo)
     vk_render_pass_begin_info.renderPass = vk_renderpass->renderpass;
     vk_render_pass_begin_info.framebuffer = vk_framebuffer->framebuffer;
     vk_render_pass_begin_info.renderArea.offset = { 0, 0 };
-    vk_render_pass_begin_info.renderArea.extent = m_wapChainExtent[drawinfo.windowIndex];
     vk_render_pass_begin_info.renderArea.extent = m_wapChainExtent[drawinfo.windowIndex];
     VkClearValue clearColor = { {{0.1f, 0.1f, 0.1f, 1.0f}} };
     vk_render_pass_begin_info.clearValueCount = 1;

@@ -1,6 +1,10 @@
 #pragma once
 #include "common.hpp"
 
+#define UNIT_X_VEC3 TBMath::Vec3(1,0,0)
+#define UNIT_Y_VEC3 TBMath::Vec3(0,1,0)
+#define UNIT_Z_VEC3 TBMath::Vec3(0,0,1)
+
 namespace TBMath
 {
 	class Vec3

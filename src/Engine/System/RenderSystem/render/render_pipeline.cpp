@@ -26,15 +26,14 @@ void TourBillon::RenderPipeline::BeforeFrameDraw(float dt, RHIDrawInfo& drawinfo
 void TourBillon::RenderPipeline::deferredRender(float dt, RHIDrawInfo& drawinfo)
 {
 	drawinfo.reset();
-	drawinfo.preEvents.addCallback([&](const CEvent&) {
+	drawinfo.resizeRenderEvents.addCallback([&](const CEvent&) {
 		passUpdateAfterRecreateSwapchain();
 		});
 
 	bool recreate_swapchain = m_rhi->prepareDraw(dt, drawinfo);
 	if (recreate_swapchain)
 	{
-		//passUpdateAfterRecreateSwapchain();
-		return;
+		passUpdateAfterRecreateSwapchain();
 	}
 	for (auto pass : m_RenderPassList)
 	{
