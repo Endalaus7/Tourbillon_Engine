@@ -26,7 +26,7 @@ void TourBillon::keyIO::updateKeyState(const CEvent& event)
 	{
 		//auto& camera = ECSManager::Instance()->GetComponent<Camera3D>(window.camera);
 		auto& trans = ECSManager::Instance()->GetComponent<Transfrom>(window.camera);
-		trans.move(trans.getright().normalizedCopy() * -0.1);
+		trans.move(trans.getright().normalizedCopy() * 0.1);
 	}
 	if (buttons.keyvalue[GLFW_KEY_W])
 	{
@@ -36,7 +36,7 @@ void TourBillon::keyIO::updateKeyState(const CEvent& event)
 	if (buttons.keyvalue[GLFW_KEY_D])
 	{
 		auto& trans = ECSManager::Instance()->GetComponent<Transfrom>(window.camera);
-		trans.move(trans.getright().normalizedCopy() * 0.1);
+		trans.move(trans.getright().normalizedCopy() * -0.1);
 	}
 	if (buttons.keyvalue[GLFW_KEY_S])
 	{

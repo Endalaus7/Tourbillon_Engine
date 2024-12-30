@@ -242,7 +242,10 @@ void TourBillon::MainCameraPass::updateUniformUboData(uint32_t windowindex)
 	Entity entity = m_camera[windowindex];
 	Camera3D& camera = ECSManager::Instance()->GetComponent<Camera3D>(m_camera[windowindex]);
 	Transfrom& trans = ECSManager::Instance()->GetComponent<Transfrom>(m_camera[windowindex]);
-	cacheUniformObject(trans.GetViewMatrix() * camera.GetProjMatrix());
+	TBMath::Mat44 vmatrix = camera.GetProjMatrix();
+	TBMath::Mat44 pmatrix = trans.GetViewMatrix();
+	TBMath::Mat44 result = pmatrix * vmatrix;
+	cacheUniformObject(result);
 }
 
 void TourBillon::MainCameraPass::updateUboBuffer(RHIDrawInfo& info)
