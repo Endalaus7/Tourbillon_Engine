@@ -2,8 +2,8 @@
 #include "Math/trans.hpp"
 #include "ECSManager.h"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
+//#include <glm/glm.hpp>
+//#include <glm/gtc/matrix_transform.hpp>
 
 const TBMath::Mat44& TourBillon::Transfrom::GetModelMatrix()
 {
@@ -27,10 +27,10 @@ const TBMath::Mat44& TourBillon::Transfrom::GetRotateMatrix()
 	TBMath::Mat44 rotateY = TBMath::rotateAroundAxis(TBMath::Vec3(0.f, 1.f, 0.f), TBMath::ToRadians(rotation.y));
 	TBMath::Mat44 rotateZ = TBMath::rotateAroundAxis(TBMath::Vec3(0.f, 0.f, 1.f), TBMath::ToRadians(rotation.z));
 
-	glm::mat4 grotPitch = glm::rotate(glm::mat4(1.0f), rotation.x, glm::vec3(0.0f, 1.0f, 0.0f));
-	glm::mat4 grotYaw = glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(1.0f, 0.0f, 0.0f));
-	glm::mat4 grotRoll = glm::rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-	glm::mat4 total = grotRoll * grotPitch * grotRoll;
+	//glm::mat4 grotPitch = glm::rotate(glm::mat4(1.0f), rotation.x, glm::vec3(0.0f, 1.0f, 0.0f));
+	//glm::mat4 grotYaw = glm::rotate(glm::mat4(1.0f), rotation.y, glm::vec3(1.0f, 0.0f, 0.0f));
+	//glm::mat4 grotRoll = glm::rotate(glm::mat4(1.0f), rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
+	//glm::mat4 total = grotRoll * grotPitch * grotRoll;
 
 	TBMath::Mat44 rotationMatrix = rotateZ * rotateY * rotateX;
 

@@ -56,7 +56,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 
 		Transfrom trans;
 		trans.position = TBMath::Vec3(6,1.5,-1.5);
-		trans.rotation = TBMath::Vec3(20, -50, 90);
+		trans.rotation = TBMath::Vec3(20, -50, 0);
 
 		Camera3D camera0;
 		//camera0.pos = TBMath::Vec3(2, 2, -2);
