@@ -115,11 +115,6 @@ void TourBillon::MainCameraPass::drawPass(float dt, RHIDrawInfo& drawinfo)
 	m_rhi->UpdateDraw(dt, drawinfo);
 }
 
-void TourBillon::MainCameraPass::updateDescriptorSets(float dt, RHIDrawInfo& drawinfo)
-{
-	updateDescriptorSet();
-}
-
 void TourBillon::MainCameraPass::setup_DescriptorSetLayout()
 {
 	///m_descriptor_infos.apply(1);
@@ -254,7 +249,7 @@ void TourBillon::MainCameraPass::updateUboBuffer(RHIDrawInfo& info)
 	m_rhi->updateBuffer((void*)m_uniform_buffer_dynamic_object_cache.data(), info.windowIndex, m_uniformdynamicbuffer->buffer, 0, sizeof(UniformBufferDynamicObject) * m_uniform_buffer_dynamic_object_cache.size());
 }
 
-void TourBillon::MainCameraPass::updateDescriptorSet()
+void TourBillon::MainCameraPass::updateMVPDescriptorSet()
 {
 	RHIUpdatesDescriptorSetsInfo update_descriptorsets_info;
 	update_descriptorsets_info.write_info.resize(2);
@@ -272,7 +267,13 @@ void TourBillon::MainCameraPass::updateDescriptorSet()
 	update_descriptorsets_info.write_info[1].range = sizeof(UniformBufferDynamicObject);// *m_uniform_buffer_dynamic_object_cache.size();
 	update_descriptorsets_info.write_info[1].offset = 0;
 	update_descriptorsets_info.write_info[1].descriptorType = RHI_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+
 	m_rhi->updateDescriptorSets(update_descriptorsets_info);
+}
+
+void TourBillon::MainCameraPass::updateImageDescriptorSet()
+{
+
 }
 
 void TourBillon::MainCameraPass::dirtyUniformBuffer()
@@ -282,6 +283,7 @@ void TourBillon::MainCameraPass::dirtyUniformBuffer()
 	//	updateDescriptorSet();
 	m_rhi->createUniformBuffer((void*)&m_uniform_buffer_object, sizeof(UniformBufferObject), m_uniformbuffer->buffer, m_uniformbuffer->buffermemory);
 	m_rhi->createUniformBuffer((void*)m_uniform_buffer_dynamic_object_cache.data(), sizeof(UniformBufferDynamicObject)* m_uniform_buffer_dynamic_object_cache.size(), m_uniformdynamicbuffer->buffer, m_uniformdynamicbuffer->buffermemory);
+	updateMVPDescriptorSet();
 	m_renderCount = ECSManager::Instance()->GetComponentSize<Transfrom>();
 	
 }

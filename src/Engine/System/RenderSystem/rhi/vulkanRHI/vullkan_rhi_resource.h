@@ -70,6 +70,10 @@ namespace TourBillon
 		VkDeviceMemory devicememory;
 	};
 	
+	struct VulkanSampler :public RHISampler
+	{
+		VkSampler sampler;
+	};
 	static VkVertexInputBindingDescription getVertexBindingDescription() {
 		VkVertexInputBindingDescription bindingDescription{};
 		bindingDescription.binding = 0;

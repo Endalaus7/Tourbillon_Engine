@@ -129,7 +129,6 @@ bool TourBillon::AssetsManager::registerAsset(Assets* asset)
 	}
 	
 	m_refs.insert({ asset->getAssetPath(),1 });
-	return true;
 
 	//优化：如果注册data在待删除列表，直接使用
 	for (auto deferdelete_itr = m_DeferredDeleteDatas.begin(); deferdelete_itr != m_DeferredDeleteDatas.end(); deferdelete_itr++)

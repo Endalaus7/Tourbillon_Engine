@@ -111,10 +111,10 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 		meshptr.setDelayFrame(3);
 		meshptr.setAssetData("Plane", mesh);
 
-		Material mat;
-
+		Material material;
+		material.MainTexture.setAssetPath(std::string(DATA_DIR) + "/test_1.png");
 		
-		ECSManager::Instance()->AddComponent<Material>(entity, mat);
+		ECSManager::Instance()->AddComponent<Material>(entity, material);
 		ECSManager::Instance()->AddComponent<Transfrom>(entity, trans);
 		ECSManager::Instance()->AddComponent<GeometryShared>(entity, meshptr);
 		index++;

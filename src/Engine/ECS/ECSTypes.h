@@ -10,6 +10,8 @@ namespace TourBillon {
 		{
 			LOAD_IMAGE,//TextureShared*
 			LOAD_IMAGE_FINISHED,//TextureShared*
+			RELEASE_IMAGE,//TextureShared*
+
 			LOAD_MODEL,//GeometryShared*
 			LOAD_MODEL_FINISHED,
 

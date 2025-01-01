@@ -28,12 +28,14 @@ namespace TourBillon
 
 		RHIImage* image_buffer;
 		RHIDeviceMemory* buffer_memory;
+		RHISampler* sampler;
 	};
 
 	struct TextureShared :public Assets
 	{
 		~TextureShared()override {}
 		virtual Texture* loadData()override;
+		virtual void releaseData()override;
 	};
 
 	struct Shader {

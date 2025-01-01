@@ -393,6 +393,34 @@ void TourBillon::VulkanRHI::createTextureImage(void* imgdata, size_t imageSize, 
 
 
 
+void TourBillon::VulkanRHI::createTextureSampler(const RHICreateTextureSamplerInfo& createinfo, RHISampler*& sampler)
+{
+	VkPhysicalDeviceProperties properties{};
+	vkGetPhysicalDeviceProperties(m_physicalDevice, &properties);
+
+    VulkanSampler* textureSampler = new VulkanSampler;
+
+	VkSamplerCreateInfo samplerInfo{};
+	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerInfo.magFilter = (VkFilter)createinfo.magFilter;
+    samplerInfo.minFilter = (VkFilter)createinfo.minFilter;
+	samplerInfo.addressModeU = (VkSamplerAddressMode)createinfo.addressmode;
+    samplerInfo.addressModeV = (VkSamplerAddressMode)createinfo.addressmode;
+    samplerInfo.addressModeW = (VkSamplerAddressMode)createinfo.addressmode;
+	samplerInfo.anisotropyEnable = createinfo.anisotropyEnable;
+	samplerInfo.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
+	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	samplerInfo.unnormalizedCoordinates = VK_FALSE;
+	samplerInfo.compareEnable = VK_FALSE;
+	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+	samplerInfo.mipmapMode = (VkSamplerMipmapMode)createinfo.mipmapmode;
+
+	if (vkCreateSampler(m_device, &samplerInfo, nullptr, &textureSampler->sampler) != VK_SUCCESS) {
+		LOG_ERROR("failed to create texture sampler!");
+	}
+    sampler = textureSampler;
+}
+
 void TourBillon::VulkanRHI::waitFrameTime(float wait_deltaTime)
 {
     if(wait_deltaTime)
@@ -930,18 +958,18 @@ bool TourBillon::VulkanRHI::AllocateDescriptorSets(const RHIDescriptorSetAllocat
 
 bool TourBillon::VulkanRHI::updateDescriptorSets(RHIUpdatesDescriptorSetsInfo& writeinfo)
 {
-    TBVector<VkWriteDescriptorSet> descriptorWrite(writeinfo.write_info.size());
-    TBVector<VkDescriptorBufferInfo> descriptorBufferInfo(writeinfo.write_info.size());
+	TBVector<VkWriteDescriptorSet> descriptorWrite(writeinfo.write_info.size());
+	TBVector<VkDescriptorBufferInfo> descriptorBufferInfo(writeinfo.write_info.size());
+	TBVector<VkDescriptorImageInfo> descriptorImageInfo(writeinfo.write_info.size());//
     uint32_t index = 0;
     for (auto itr : writeinfo.write_info)
     {
-        VkDescriptorBufferInfo bufferInfo{};
-
         VulkanBuffer* vk_buffer = dynamic_cast<VulkanBuffer*>(itr.buffer);
+        VulkanImageView* vk_imageview = dynamic_cast<VulkanImageView*>(itr.imageview);
+        VulkanSampler* vk_sampler = dynamic_cast<VulkanSampler*>(itr.sampler);
         VulkanDescriptorSet* vk_descriptor = dynamic_cast<VulkanDescriptorSet*>(itr.descriptorset);
-        descriptorBufferInfo[index].buffer = vk_buffer->buffer;
-        descriptorBufferInfo[index].offset = itr.offset;
-        descriptorBufferInfo[index].range = itr.range;
+        
+		
 		//bufferInfo.buffer = vk_buffer->buffer;
 		//bufferInfo.offset = itr.offset;
 		//bufferInfo.range = itr.range;
@@ -952,7 +980,20 @@ bool TourBillon::VulkanRHI::updateDescriptorSets(RHIUpdatesDescriptorSetsInfo& w
         descriptorWrite[index].dstArrayElement = 0;
         descriptorWrite[index].descriptorType = static_cast<VkDescriptorType>(itr.descriptorType);
         descriptorWrite[index].descriptorCount = 1;
-        descriptorWrite[index].pBufferInfo = &descriptorBufferInfo[index];
+        if (vk_buffer)
+		{
+			descriptorBufferInfo[index].buffer = vk_buffer->buffer;
+			descriptorBufferInfo[index].offset = itr.offset;
+			descriptorBufferInfo[index].range = itr.range;
+            descriptorWrite[index].pBufferInfo = &descriptorBufferInfo[index];
+		}
+        if (vk_imageview && vk_sampler)
+        {
+            descriptorImageInfo[index].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            descriptorImageInfo[index].imageView = vk_imageview->imageview;
+            descriptorImageInfo[index].sampler = vk_sampler->sampler;
+            descriptorWrite[index].pImageInfo = &descriptorImageInfo[index];
+        }
 
         index++;
     }
@@ -1645,6 +1686,42 @@ void TourBillon::VulkanRHI::endSingleTimeCommands(RHICommandBuffer* command_buff
 
     vkFreeCommandBuffers(m_device, m_commandPools[windowindex], 1, &vk_command_buffer);
     delete(command_buffer);
+}
+
+void TourBillon::VulkanRHI::destroyImage(RHIImage*& image)
+{
+    if (!image)
+        return;
+    VulkanImage* vk_image = dynamic_cast<VulkanImage*>(image);
+    vkDestroyImage(m_device, vk_image->image, nullptr);
+    SAFE_DELETE(image);
+}
+
+void TourBillon::VulkanRHI::destroyBuffer(RHIBuffer*& buffer)
+{
+	if (!buffer)
+		return;
+	VulkanBuffer* vk_buffer = dynamic_cast<VulkanBuffer*>(buffer);
+    vkDestroyBuffer(m_device, vk_buffer->buffer, nullptr);
+    SAFE_DELETE(buffer);
+}
+
+void TourBillon::VulkanRHI::destroyMemory(RHIDeviceMemory*& memory)
+{
+	if (!memory)
+		return;
+	VulkanDeviceMemory* vk_memory = dynamic_cast<VulkanDeviceMemory*>(memory);
+    vkFreeMemory(m_device, vk_memory->devicememory, nullptr);
+    SAFE_DELETE(memory);
+}
+
+void TourBillon::VulkanRHI::destroySampler(RHISampler*& sampler)
+{
+    if (!sampler)
+        return;
+    VulkanSampler* vk_sampler = dynamic_cast<VulkanSampler*>(sampler);
+    vkDestroySampler(m_device, vk_sampler->sampler, nullptr);
+    SAFE_DELETE(sampler);
 }
 
 void TourBillon::VulkanRHI::cleanup()

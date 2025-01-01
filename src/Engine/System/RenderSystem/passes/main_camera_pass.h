@@ -19,7 +19,6 @@ namespace TourBillon
 
 		virtual void beforeDraw(float dt, RHIDrawInfo& drawinfo)override;
 		virtual void drawPass(float dt, RHIDrawInfo& drawinfo)override;
-		virtual void updateDescriptorSets(float dt, RHIDrawInfo& drawinfo)override;
 
 		virtual void setup_DescriptorSetLayout()override;
 		virtual void setup_RenderPass()override;
@@ -49,7 +48,8 @@ namespace TourBillon
 		void updateUboData();
 		void updateUniformUboData(uint32_t windowindex);
 		void updateUboBuffer(RHIDrawInfo& info);
-		void updateDescriptorSet();
+		void updateMVPDescriptorSet();
+		void updateImageDescriptorSet();
 
 		void dirtyUniformBuffer();
 	private:
@@ -68,5 +68,6 @@ namespace TourBillon
 
 		RHIBufferResource* m_uniformdynamicbuffer;//¶¯Ì¬uniform
 		std::vector<UniformBufferDynamicObject> m_uniform_buffer_dynamic_object_cache;
+
 	};
 }

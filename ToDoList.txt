@@ -13,4 +13,4 @@
 1.资源管理：检查vulkan rhi的所有vk资源的释放
 2.【解决】自定义智能指针：延迟销毁，gc算法
 3.相机的pos,lookat,up从相机组件脱离出来，加入trans(包括函数移植
-4.多窗口系统重构：考虑更合理的多窗口方案，向rendertarget方向转变，减少rhi中对windowindex的大量依赖
+4.多窗口系统重构：考虑更合理的多窗口方案，将renderpipeline与window绑定（兼顾同屏）

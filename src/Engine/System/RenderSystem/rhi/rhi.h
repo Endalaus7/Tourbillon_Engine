@@ -51,6 +51,7 @@ namespace TourBillon
 		virtual bool updateDescriptorSets(RHIUpdatesDescriptorSetsInfo& writeinfo) = 0;
 
 		virtual void createTextureImage(void* imgdata, size_t imageSize, int imageWidth, int imageHeight, int texChannels, RHIImage*& image_buffer, RHIDeviceMemory*& buffer_memory) = 0;
+		virtual void createTextureSampler(const RHICreateTextureSamplerInfo& createinfo, RHISampler*& sampler) = 0;
 
 		virtual void updateBuffer(void* data, uint32_t windowindex, RHIBuffer* buffer, RHIDeviceSize offset, RHIDeviceSize size) = 0;
 
@@ -58,6 +59,10 @@ namespace TourBillon
 		virtual void createIndexBuffer(void* data, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory) = 0;
 		virtual void createUniformBuffer(void* mapdata, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory) = 0;
 		
+		virtual void destroyImage(RHIImage*& image) = 0;
+		virtual void destroyBuffer(RHIBuffer*& buffer) = 0;
+		virtual void destroyMemory(RHIDeviceMemory*& memory) = 0;
+		virtual void destroySampler(RHISampler*& sampler) = 0;
 
 		virtual bool createDescriptorSetLayout(const RHIDescriptorSetLayoutCreateInfo* pCreateInfo, RHIDescriptorSetLayout*& pSetLayout) = 0;
 

@@ -6,6 +6,9 @@
 #include "Structure/TB_List.hpp"
 #include "Math/mat44.hpp"
 #include "ECSManager.h"
+
+//总渲染管线，代表同一个画面中的所有通道
+
 namespace TourBillon
 {
 	struct RenderPipelineInitInfo{

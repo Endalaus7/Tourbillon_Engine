@@ -28,6 +28,7 @@ namespace TourBillon
         virtual void AfterFrameDraw(float dt)override;
 
         virtual void createTextureImage(void* imgdata, size_t imageSize,int imageWidth, int imageHeight, int texChannels, RHIImage*& image_buffer, RHIDeviceMemory*& buffer_memory)override;
+        virtual void createTextureSampler(const RHICreateTextureSamplerInfo& createinfo, RHISampler*& sampler)override;
 
         void multiWindowResize(uint32_t windowsize);
 
@@ -117,6 +118,11 @@ namespace TourBillon
 
         RHICommandBuffer* beginSingleTimeCommands(uint32_t windowindex);
         void            endSingleTimeCommands(RHICommandBuffer* command_buffer, uint32_t windowindex);
+
+		virtual void destroyImage(RHIImage*& image)override;
+		virtual void destroyBuffer(RHIBuffer*& buffer)override;
+		virtual void destroyMemory(RHIDeviceMemory*& memory)override;
+        virtual void destroySampler(RHISampler*& sampler)override;
 
         void cleanup();
         virtual void clearSwapchain(uint32_t windowindex);

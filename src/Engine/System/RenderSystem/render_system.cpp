@@ -3,6 +3,7 @@
 #include "rhi/rhi.h"
 #include "rhi/rhi_window.h"
 #include "render/render_pipeline.h"
+#include "render/render_resource.h"
 #include "event.hpp"
 #include "Assets.h"
 
@@ -44,6 +45,8 @@ void TourBillon::RenderSystem::initialize(SystemInitInfo* init_info)
 
     m_frame_rate = render_init_info->frame_rate;
 
+    m_rendersource = std::make_shared<RenderSource>();
+    m_rendersource->init(this);
 
     RHIInitInfo rhi_init_info;
     rhi_init_info.window_systems = m_rhiWindows;

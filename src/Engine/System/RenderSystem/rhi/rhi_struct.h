@@ -14,6 +14,7 @@ namespace TourBillon
 		DEF_RHI_STRUCT_INTERFACE(RHIShader)
 		DEF_RHI_STRUCT_INTERFACE(RHIFramebuffer)
 		DEF_RHI_STRUCT_INTERFACE(RHIImage)
+		DEF_RHI_STRUCT_INTERFACE(RHISampler)
 		DEF_RHI_STRUCT_INTERFACE(RHIDeviceMemory)
 		DEF_RHI_STRUCT_INTERFACE(RHIImageView)
 		DEF_RHI_STRUCT_INTERFACE(RHIDescriptorSetLayout)
@@ -76,18 +77,26 @@ namespace TourBillon
 	struct RHIWriteDescriptorSetInfo
 	{
 		uint32_t bindingindex;
-		RHIBuffer* buffer;
-		RHIDescriptorSet* descriptorset;
+		RHIBuffer* buffer = nullptr;
+		RHIImageView* imageview = nullptr;
+		RHISampler* sampler = nullptr;
+		RHIDescriptorSet* descriptorset = nullptr;
 		RHIDeviceSize range;
 		RHIDeviceSize offset;
 		RHIDescriptorType descriptorType;
 	};
 	struct RHIUpdatesDescriptorSetsInfo
 	{
-		TBVector<RHIWriteDescriptorSetInfo> write_info;
+		TBVector<RHIWriteDescriptorSetInfo> write_info;//
 
 	};
-
+	struct RHICreateTextureSamplerInfo {
+		RHISamplerFilter minFilter;
+		RHISamplerFilter magFilter; 
+		RHISamplerAddressMode addressmode; 
+		RHIMipmapMode mipmapmode;
+		bool anisotropyEnable;
+	};
 	struct RHIPipelineCreateInfo {
 		struct ShaderEntry
 		{

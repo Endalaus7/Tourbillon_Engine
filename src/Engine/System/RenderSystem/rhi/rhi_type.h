@@ -802,5 +802,22 @@ namespace TourBillon
         RHI_DESCRIPTOR_TYPE_MUTABLE_VALVE = 1000351000,
         RHI_DESCRIPTOR_TYPE_MAX_ENUM = 0x7FFFFFFF
     };
+    enum RHIMipmapMode {
+        RHI_MIPMAP_NEAREST,
+        RHI_MIPMAP_LINEAR,
 
+    };
+    enum RHISamplerAddressMode
+    {
+        RHI_SAMPLER_ADDRESS_REPEAT = 0,//重复纹理
+        RHI_SAMPLER_ADDRESS_MIRRORED_REPEAT = 1,//镜像重复纹理
+		RHI_SAMPLER_ADDRESS_CLAMP_TO_EDGE = 2,//裁剪到边缘
+		RHI_SAMPLER_ADDRESS_CLAMP_TO_BORDER = 3,//裁剪到borderColor
+		RHI_SAMPLER_ADDRESS_MIRROR_CLAMP_TO_EDGE = 4,
+    };
+    //过滤方式
+    enum RHISamplerFilter {
+		RHI_SAMPLER_FILTER_NEAREST = 0,
+		RHI_SAMPLER_FILTER_LINEAR = 1,
+    };
 }
