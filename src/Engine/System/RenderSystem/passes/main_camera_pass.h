@@ -27,7 +27,11 @@ namespace TourBillon
 
 		virtual void destroyFramebuffer()override;
 
+		virtual void updateDescriptorSets(float dt, RHIDrawInfo& drawinfo)override;
+
 		void setMainCamera(uint32_t windowindex, Entity camera);
+
+
 
 		struct UniformBufferObject
 		{

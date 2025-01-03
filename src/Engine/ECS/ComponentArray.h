@@ -20,6 +20,24 @@ namespace TourBillon
 	template<typename T>
 	class ComponentArray:public IComponentArray
 	{
+		template<typename U, typename V>
+		void insertAssetData(U&& fieldName, V&& value, size_t depth)
+		{
+			if constexpr (std::is_base_of_v<Assets, std::remove_reference_t<decltype(value)>>)
+			{
+				((decltype(value))value).insertData();
+				forEachProperty_rec(value, METHOD_PROPERTY(ComponentArray<T>::insertAssetData));
+			}
+		}
+		template<typename U, typename V>
+		void releaseAssetData(U&& fieldName, V&& value, size_t depth)
+		{
+			if constexpr (std::is_base_of_v<Assets, std::remove_reference_t<decltype(value)>>)
+			{
+				forEachProperty_rev(value, METHOD_PROPERTY(ComponentArray<T>::releaseAssetData));
+				((decltype(value))value).releaseData();
+			}
+		}
 	public:
 		constexpr void InsertData(Entity entity, T& component)
 		{
@@ -116,6 +134,9 @@ namespace TourBillon
 		std::unordered_map<Entity, size_t> mEntityToIndexMap;
 		std::unordered_map<size_t, Entity> mIndexToEntityMap;
 		size_t mSize = 0;
+
+	private:
+		
 	};
 }
 

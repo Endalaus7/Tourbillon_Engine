@@ -8,6 +8,7 @@
 #define PAIR(x) PARE x // PAIR((int) x) => PARE(int) x => int x
 #define STRIP(x) x // STRIP((int) x) => EAT(int) x => x
 #define PASTE(x, y) CONNECT(x, y)
+#include<vector>
 
 //GET_ARG_COUNT(__VA_ARGS__))
 #define COUNT_ARGS_IMPL(                                                                        \

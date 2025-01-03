@@ -107,9 +107,9 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 		trans.position = TBMath::Vec3(1.1f * (index - 2), 0, 0);
 
 		GeometryShared meshptr;
-		meshptr.setDeleteType(Assets::Delay_Render_Delete);
+		meshptr.setDeleteType(AssetsInfo::Delay_Render_Delete);
 		meshptr.setDelayFrame(3);
-		meshptr.setAssetData("Plane", mesh);
+		meshptr.setAssetData(mesh);
 
 		Material material;
 		material.MainTexture.setAssetPath(std::string(DATA_DIR) + "/test_1.png");

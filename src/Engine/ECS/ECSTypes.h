@@ -13,7 +13,7 @@ namespace TourBillon {
 			RELEASE_IMAGE,//TextureShared*
 
 			LOAD_MODEL,//GeometryShared*
-			LOAD_MODEL_FINISHED,
+			//LOAD_MODEL_FINISHED,
 
 
 			KEY_CHANGE,//entity id

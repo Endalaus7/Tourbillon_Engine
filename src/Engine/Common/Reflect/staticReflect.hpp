@@ -102,12 +102,28 @@ struct IsReflected : std::false_type { };
 template<typename T>
 struct IsReflected<T, std::void_t<decltype(&T::_field_count_)>> : std::true_type { };
 
+//递归检查父类(未完成)
+template<typename T>
+struct IsReflected<T, std::void_t<decltype(&T::_field_count_)>> {
+    static constexpr bool value = IsReflected<typename std::remove_reference<T>::type>::value;
+};
+
 template<typename T>
 constexpr static bool IsReflected_t = IsReflected<T>::value;
 
 #define IsReflected_v(var) IsReflected<std::remove_reference_t<decltype(var)>>::value
 
-#define IsArray_v(var) std::is_same_v<std::remove_reference<decltype(var)>::type, TBVector<typename std::remove_reference<decltype(var)>::type::value_type>>
+template <typename, template <typename...> class>
+struct is_specialization : std::false_type {};
+
+template <template <typename...> class Template, typename... Args>
+struct is_specialization<Template<Args...>, Template> : std::true_type {};
+
+template <typename T>
+constexpr static bool IsArray_t = is_specialization<T, TBVector>::value;
+
+#define IsArray_v(var) IsArray_t<std::remove_reference<decltype(var)>::type>
+
 #define IsInt_v(var) IsType<int>(var)
 
 template<typename T, typename F, size_t... Is>
@@ -124,6 +140,9 @@ inline constexpr void forEachProperty(T&& obj, F&& f) {
         std::make_index_sequence<std::decay_t<T>::_field_count_>{});
 }
 
+#define METHOD_PROPERTY(Listener) std::bind(&Listener, this, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3)
+#define FUNCTION_PROPERTY(Listener) std::bind(&Listener, std::placeholders::_1,std::placeholders::_2,std::placeholders::_3)
+
 // 递归回调，父级优先
 template <typename T,typename F>
 inline constexpr void forEachProperty_rec(T&& object, F&& f, size_t depth = 0)
@@ -132,6 +151,11 @@ inline constexpr void forEachProperty_rec(T&& object, F&& f, size_t depth = 0)
         f(fieldName, std::forward<decltype(value)>(value), depth);
         if constexpr (IsReflected_v(value)) {
             forEachProperty_rec(value, f, depth + 1);
+            if constexpr(IsArray_v(value))
+            {
+                for (auto& itr : value)
+                    forEachProperty_rec(itr, f, depth + 1);
+            }
         }
         
         });
@@ -143,6 +167,12 @@ inline constexpr void forEachProperty_rev(T&& object, F&& f, size_t depth = 0)
 {
 	forEachProperty(std::forward<T>(object), [&](auto&& fieldName, auto&& value) {
 		if constexpr (IsReflected_v(value)) {
+            if (IsArray_v(value))
+            {
+                int a = 0;
+                //for (auto& itr : value)
+                //    forEachProperty_rev(itr, f, depth + 1);
+            }
             forEachProperty_rev(value, f, depth + 1);
 		}
         f(fieldName, std::forward<decltype(value)>(value), depth);

@@ -13,8 +13,9 @@ namespace TourBillon
 {
 	class RHIImage;
 	class RHIDeviceMemory;
+	class RHISampler;
 
-	struct Texture :public AssetsData
+	struct Texture
 	{
 		STATIC_PROPERTY_CLASS_BEGIN(Texture)
 			STATIC_PROPERTY_DEF(ReflectPath, imagePath)
@@ -31,27 +32,64 @@ namespace TourBillon
 		RHISampler* sampler;
 	};
 
-	struct TextureShared :public Assets
+	struct TextureShared :public Assets<Texture>
 	{
 		~TextureShared()override {}
 		virtual Texture* loadData()override;
 		virtual void releaseData()override;
 	};
 
-	struct Shader {
-		STATIC_PROPERTY_CLASS_BEGIN(Shader)
+	struct PipelineData 
+	{
+		STATIC_PROPERTY_CLASS_BEGIN(PipelineData)
 			STATIC_PROPERTY_DEF(ReflectPath, vertShaderPath)
 			STATIC_PROPERTY_DEF(ReflectPath, fragShaderPath)
 
 		STATIC_PROPERTY_CLASS_END()
 	};
+
+	struct PipelinePtr :public Assets<PipelineData>
+	{
+		~PipelinePtr()override {}
+		virtual PipelineData* loadData()override;
+		virtual void releaseData()override;
+	};
 	
+	struct SubPassData
+	{
+		STATIC_PROPERTY_CLASS_BEGIN(SubPassData)
+			STATIC_PROPERTY_DEF(PipelinePtr, bindPipeline)
+			STATIC_PROPERTY_DEF(ReflectPath, fragShaderPath)
+
+		STATIC_PROPERTY_CLASS_END()
+	};
+	struct SubpassPtr :public Assets<SubPassData>
+	{
+		~SubpassPtr()override {}
+		virtual SubPassData* loadData()override;
+		virtual void releaseData()override;
+	};
+	struct PassData 
+	{
+		STATIC_PROPERTY_CLASS_BEGIN(Pass)
+			STATIC_PROPERTY_DEF_ARRAY(SubPassData, subpasses)
+
+		STATIC_PROPERTY_CLASS_END()
+	};
+
+	struct PassPtr :public Assets<PassData>
+	{
+		~PassPtr()override {}
+		virtual PassData* loadData()override;
+		virtual void releaseData()override;
+	};
+
 	struct Material:public Component
 	{
 		STATIC_PROPERTY_CLASS_BEGIN(Material)
 			STATIC_PROPERTY_DEF(ColorRGBA, basecolor)
 			STATIC_PROPERTY_DEF(TextureShared, MainTexture)
-			STATIC_PROPERTY_DEF(Shader, shaders)
+			STATIC_PROPERTY_DEF_ARRAY(PassPtr, shaders)
 			//...
 		STATIC_PROPERTY_CLASS_END()
 	public:

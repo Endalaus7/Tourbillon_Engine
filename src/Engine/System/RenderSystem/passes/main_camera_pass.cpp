@@ -194,6 +194,10 @@ void TourBillon::MainCameraPass::destroyFramebuffer()
 	}
 }
 
+void TourBillon::MainCameraPass::updateDescriptorSets(float dt, RHIDrawInfo& drawinfo)
+{
+}
+
 void TourBillon::MainCameraPass::cacheUniformObject(const TBMath::Mat44& proj_view_matrix)
 {
 	m_uniform_buffer_object.proj_view_matrix = proj_view_matrix;

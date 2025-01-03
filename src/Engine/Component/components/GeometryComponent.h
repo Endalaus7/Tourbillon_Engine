@@ -31,7 +31,7 @@ namespace TourBillon
 	};
 
 	//static mesh
-	struct Geometry :public AssetsData
+	struct Geometry 
 	{
 		STATIC_PROPERTY_CLASS_BEGIN(Geometry)
 			STATIC_PROPERTY_DEF(ReflectPath, modelPath)//可以是相对路径
@@ -45,7 +45,7 @@ namespace TourBillon
 		RHIBufferResource* indexBuffer = nullptr;
 	};
 
-	struct GeometryShared :public Assets
+	struct GeometryShared :public Assets<Geometry>
 	{
 		~GeometryShared()override {}
 		virtual Geometry* loadData()override;

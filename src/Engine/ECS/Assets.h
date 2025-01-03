@@ -3,66 +3,78 @@
 #include "common.hpp"
 #include <set>
 #include <queue>
-
+#include <atomic>
+#include <typeindex>
+#include <typeinfo>
 //提供了几种功能：引用计数、延迟删除及追踪、运行时数据和标记。
 
 namespace TourBillon
 {
 	//数据的接口
 	//支持反射(尚未完成)
-	class AssetsData
-	{
-	public:
-		virtual ~AssetsData() = default;
-	};
+	//class AssetsData
+	//{
+	//public:
+	//	virtual ~AssetsData() = default;
+	//};
 	//保存存储路径和AssetsData的指针
 
-	class Assets : public Component
+	namespace AssetsInfo
 	{
-	public:
-		friend class AssetsManager;
-
-		Assets();
-		Assets(const Assets& other);
-		virtual ~Assets();
-
-		//释放方式
 		enum DeleteType
 		{
 			Immedia_Delete,//立即删除,m_delayFrame是转为强制删除的需要帧数
 			Immedia_Force_Delete,//强制删除，不考虑当前帧的忙碌情况
 			Delay_Render_Delete,//延迟删除,m_delayFrame是渲染帧数
 			Delay_Physical_Delete,//延迟删除,m_delayFrame是物理帧数
+			No_Delete,//不删除
 		};
-		const ReflectPath& getAssetPath();
-		void setAssetPath(const ReflectPath& path);
+	}
 
-		//仅IO系统可调用
-		void setAssetData(AssetsData* data) { assetdata = data; }
-		//直接设置data和名称
-		void setAssetData(const ReflectPath& name,AssetsData* data);
+
+	template<typename T>
+	class Assets : public Component
+	{
+		static constexpr size_t _field_count_ = 0;
+	public:
+		friend class AssetsManager;
+		//Assets(const Assets& other);
+		virtual ~Assets(){}
+
+		//释放方式
 		
-		AssetsData* getData();
-		void release();//仅释放指针
+		void setAssetPath(const ReflectPath& path){ assetpath = path; }
+		const ReflectPath& getAssetPath() { return assetpath; }
 
-		virtual void insertData()override;
-		virtual void releaseData()override;
+		void setAssetData(T* data) { assetdata = data; }
+		T* getData() { return assetdata; }
+
+		virtual void insertData() 
+		{
+			
+			AssetsManager::Instance()->registerAsset<T>(this);
+		}
+		virtual void releaseData()
+		{
+			AssetsManager::Instance()->releaseAssert<T>(this);//清除资源
+
+			assetpath.clear();
+			assetdata = nullptr;
+		}
 		
 		void setDelayFrame(uint32_t frame) { m_delayFrame = frame; }
-		void setDeleteType(DeleteType type) { deleteType = type; }
-		DeleteType getDeleteType() { return deleteType; }
+		void setDeleteType(AssetsInfo::DeleteType type) { deleteType = type; }
+		AssetsInfo::DeleteType getDeleteType() { return deleteType; }
 	private:
 		//加载数据的实现
-		virtual AssetsData* loadData() = 0;
+		virtual T* loadData() = 0;
 	protected:
-		uint32_t ref_index = 0;//用引用计数给指针标号
-
-		DeleteType deleteType = Immedia_Delete;
-		AssetsData* assetdata = nullptr;
-		uint32_t m_delayFrame = 0;
-		ReflectPath assetpath;//绝对路径,用于标识唯一资产
 		
 
+		AssetsInfo::DeleteType deleteType = AssetsInfo::Immedia_Delete;
+		T* assetdata = nullptr;
+		uint32_t m_delayFrame = 0;
+		ReflectPath assetpath;//需要加载数据的路径
 		
 	};
 
@@ -71,38 +83,136 @@ namespace TourBillon
 	//不记录数据，记引用计数和引用指针
 	class AssetsManager : public Singleton<AssetsManager>
 	{
-		friend class Assets;
-	private:
-		
 	public:
 		void tickRender(float dt);
 
-	private:
-		uint32_t getRef(const ReflectPath& path);
-		//
-		bool registerAsset(Assets* asset);
-		//if m_ref == 0,return true(true means delete data)
-		bool releaseAsset(Assets* asset);
-		//force delete all asset
-		void forceReleaseAsset(const ReflectPath& path);
+		//添加资源
+		template<typename T>
+		void registerAsset(Assets<T>* asset)
+		{
+			if (!asset)
+				return;
 
-		bool deleteAssert(Assets* asset);
-		void deleteData(AssetsData*& assetdata);
+			std::type_index typeIndex = std::type_index(typeid(T));
+			if (m_allassets.find(typeIndex) == m_allassets.end())//未注册该类型
+			{
+				m_allassets.insert({ typeIndex, AssetsPtr() });
+			}
+			else//已注册类型
+			{
+				auto& ptr = m_allassets[typeIndex].data_ref;
+				if (ptr.find(asset->assetdata) != ptr.end())//已存在data
+				{
+					ptr[asset->getData()]++;
+					return;
+				}
+			}
 
-		std::set<Assets*> m_allassets;//所有asset指针
-		std::unordered_map<ReflectPath, uint32_t> m_refs;
+			//优化：如果要加载的data在待删除列表，直接使用
+			if (!asset->assetpath.empty())
+			{
+				for (auto deferdelete_itr = m_DeferredDeleteDatas.begin(); deferdelete_itr != m_DeferredDeleteDatas.end(); deferdelete_itr++)
+				{
+					if (asset->assetpath == deferdelete_itr->path)
+					{
+						asset->assetdata = (T*)deferdelete_itr->data;
+						m_DeferredDeleteDatas.erase(deferdelete_itr);
+						m_allassets[typeIndex].data_ref.insert({ asset->assetdata, 1 });
+						return;
+					}
+				}
+			}
+
+			//有资源路径，加载资源
+			if (!asset->assetpath.empty())
+			{
+				bool loadResult = asset->loadData();
+
+				if (!loadResult)
+				{
+					LOG_ERROR("load asset error");
+				}
+				m_allassets[typeIndex].data_ref.insert({ asset->assetdata, 1 });
+				return;
+			}
+		}
+		template<typename T>
+		bool releaseAssert(Assets<T>* asset)
+		{
+			if (!asset)
+				return false;
+
+			std::type_index typeIndex = std::type_index(typeid(T));
+			if (m_allassets.find(typeIndex) == m_allassets.end())//未注册该类型
+				return false;
+
+			auto& ptr = m_allassets[typeIndex].data_ref;
+			if (ptr.find(asset->assetdata) == ptr.end())
+				return false;
+
+			deleteAssert(asset);
+		}
+		//删除资源
+		template<typename T>
+		bool deleteAssert(Assets<T>* asset)
+		{
+			if (asset->deleteType == AssetsInfo::Immedia_Force_Delete)
+			{
+				deleteData((void*)asset->assetdata);
+			}
+			else if (asset->deleteType == AssetsInfo::Immedia_Delete)
+			{
+				if (m_deleteInCurrFrame > m_max_deleted_inFrame)
+				{
+					m_PendingDeletes.push(asset->assetdata);
+				}
+				else
+				{
+					deleteData((void*)asset->assetdata);
+				}
+			}
+			else if (asset->deleteType == AssetsInfo::Delay_Render_Delete)
+			{
+				AssetToDelete deferred_delete;
+				deferred_delete.data = asset->assetdata;
+				deferred_delete.path = asset->assetpath;
+				deferred_delete.FrameDeleted = asset->m_delayFrame;
+				m_DeferredDeleteDatas.push_back(deferred_delete);
+			}
+			else if(asset->deleteType == AssetsInfo::No_Delete)
+			{
+				return false;
+			}
+			else//未实现或未知删除方式
+			{
+				//delete data;
+				return false;
+			}
+			return true;
+		}
+		void deleteData(void* assetdata);
+
+		//用于记录所有指向该data的指针
+
+		struct AssetsPtr {
+			std::unordered_map<void* ,uint32_t> data_ref;
+			//std::atomic<uint32_t>* ref_count = 0;//引用计数
+		};
+
+		std::unordered_map<std::type_index, AssetsPtr> m_allassets;//所有assetData指针
+		//std::unordered_map<uint32_t, uint32_t> m_refs;
 
 		// 待删除的资源.
-		std::queue<AssetsData*> m_PendingDeletes;
+		std::queue<void*> m_PendingDeletes;
 		// 正在删除的资源.
-		AssetsData* CurrentlyDeleting;
+		void* CurrentlyDeleting;
 
 		uint32_t m_max_deleted_inFrame = 100;//一帧中最大释放资源数
 		uint32_t m_deleteInCurrFrame = 0;//当前帧释放资源数
 		struct AssetToDelete
 		{
 			ReflectPath path;		//标记资源的绝对路径
-			AssetsData* data;    // 待删除的资源.
+			void* data;    // 待删除的资源.
 			uint32_t    FrameDeleted; // 等待的帧数.
 		};
 		// 延迟删除的资源队列.
