@@ -35,6 +35,7 @@ namespace TourBillon
 	template<typename T>
 	class Assets : public Component
 	{
+	public:
 		static constexpr size_t _field_count_ = 0;
 	public:
 		friend class AssetsManager;
@@ -74,7 +75,7 @@ namespace TourBillon
 		AssetsInfo::DeleteType deleteType = AssetsInfo::Immedia_Delete;
 		T* assetdata = nullptr;
 		uint32_t m_delayFrame = 0;
-		ReflectPath assetpath;//需要加载数据的路径
+		ReflectPath assetpath;//资源的绝对路径，唯一标识
 		
 	};
 
@@ -90,7 +91,7 @@ namespace TourBillon
 		template<typename T>
 		void registerAsset(Assets<T>* asset)
 		{
-			if (!asset)
+			if (!asset || asset->assetpath.empty())
 				return;
 
 			std::type_index typeIndex = std::type_index(typeid(T));
@@ -101,25 +102,22 @@ namespace TourBillon
 			else//已注册类型
 			{
 				auto& ptr = m_allassets[typeIndex].data_ref;
-				if (ptr.find(asset->assetdata) != ptr.end())//已存在data
+				if (ptr.find(asset->assetpath) != ptr.end())//已存在data
 				{
-					ptr[asset->getData()]++;
+					ptr[asset->assetpath]++;
 					return;
 				}
 			}
 
 			//优化：如果要加载的data在待删除列表，直接使用
-			if (!asset->assetpath.empty())
+			for (auto deferdelete_itr = m_DeferredDeleteDatas.begin(); deferdelete_itr != m_DeferredDeleteDatas.end(); deferdelete_itr++)
 			{
-				for (auto deferdelete_itr = m_DeferredDeleteDatas.begin(); deferdelete_itr != m_DeferredDeleteDatas.end(); deferdelete_itr++)
+				if (asset->assetpath == deferdelete_itr->path)
 				{
-					if (asset->assetpath == deferdelete_itr->path)
-					{
-						asset->assetdata = (T*)deferdelete_itr->data;
-						m_DeferredDeleteDatas.erase(deferdelete_itr);
-						m_allassets[typeIndex].data_ref.insert({ asset->assetdata, 1 });
-						return;
-					}
+					asset->assetdata = (T*)deferdelete_itr->data;
+					m_DeferredDeleteDatas.erase(deferdelete_itr);
+					m_allassets[typeIndex].data_ref.insert({ asset->assetpath, 1 });
+					return;
 				}
 			}
 
@@ -132,7 +130,7 @@ namespace TourBillon
 				{
 					LOG_ERROR("load asset error");
 				}
-				m_allassets[typeIndex].data_ref.insert({ asset->assetdata, 1 });
+				m_allassets[typeIndex].data_ref.insert({ asset->assetpath, 1 });
 				return;
 			}
 		}
@@ -147,7 +145,7 @@ namespace TourBillon
 				return false;
 
 			auto& ptr = m_allassets[typeIndex].data_ref;
-			if (ptr.find(asset->assetdata) == ptr.end())
+			if (ptr.find(asset->assetpath) == ptr.end())
 				return false;
 
 			deleteAssert(asset);
@@ -195,7 +193,7 @@ namespace TourBillon
 		//用于记录所有指向该data的指针
 
 		struct AssetsPtr {
-			std::unordered_map<void* ,uint32_t> data_ref;
+			std::unordered_map<std::string ,uint32_t> data_ref;
 			//std::atomic<uint32_t>* ref_count = 0;//引用计数
 		};
 

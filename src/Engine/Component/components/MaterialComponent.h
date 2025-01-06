@@ -48,11 +48,9 @@ namespace TourBillon
 		STATIC_PROPERTY_CLASS_END()
 	};
 
-	struct PipelinePtr :public Assets<PipelineData>
+	struct PipelinePtr
 	{
-		~PipelinePtr()override {}
-		virtual PipelineData* loadData()override;
-		virtual void releaseData()override;
+
 	};
 	
 	struct SubPassData
@@ -63,13 +61,10 @@ namespace TourBillon
 
 		STATIC_PROPERTY_CLASS_END()
 	};
-	struct SubpassPtr :public Assets<SubPassData>
+	struct SubpassPtr
 	{
-		~SubpassPtr()override {}
-		virtual SubPassData* loadData()override;
-		virtual void releaseData()override;
 	};
-	struct PassData 
+	struct Pass
 	{
 		STATIC_PROPERTY_CLASS_BEGIN(Pass)
 			STATIC_PROPERTY_DEF_ARRAY(SubPassData, subpasses)
@@ -77,19 +72,12 @@ namespace TourBillon
 		STATIC_PROPERTY_CLASS_END()
 	};
 
-	struct PassPtr :public Assets<PassData>
-	{
-		~PassPtr()override {}
-		virtual PassData* loadData()override;
-		virtual void releaseData()override;
-	};
-
 	struct Material:public Component
 	{
 		STATIC_PROPERTY_CLASS_BEGIN(Material)
 			STATIC_PROPERTY_DEF(ColorRGBA, basecolor)
 			STATIC_PROPERTY_DEF(TextureShared, MainTexture)
-			STATIC_PROPERTY_DEF_ARRAY(PassPtr, shaders)
+			//STATIC_PROPERTY_DEF(PassPtr, passes)
 			//...
 		STATIC_PROPERTY_CLASS_END()
 	public:

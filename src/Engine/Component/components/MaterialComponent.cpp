@@ -13,30 +13,3 @@ void TourBillon::TextureShared::releaseData()
 {
 	ECSManager::Instance()->SendEvent(Events::RELEASE_IMAGE, (void*)this);
 }
-
-TourBillon::PipelineData* TourBillon::PipelinePtr::loadData()
-{
-
-	return dynamic_cast<PipelineData*>(assetdata);
-}
-
-void TourBillon::PipelinePtr::releaseData()
-{
-}
-
-TourBillon::SubPassData* TourBillon::SubpassPtr::loadData()
-{
-	return dynamic_cast<SubPassData*>(assetdata);
-}
-
-void TourBillon::SubpassPtr::releaseData()
-{
-}
-TourBillon::PassData* TourBillon::PassPtr::loadData()
-{
-	return dynamic_cast<PassData*>(assetdata);
-}
-void TourBillon::PassPtr::releaseData()
-{
-
-}

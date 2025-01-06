@@ -96,16 +96,32 @@ inline constexpr const char* get_property_name(T&& obj)
 }
 
 
-template<typename T, typename = void>
-struct IsReflected : std::false_type { };
-
 template<typename T>
-struct IsReflected<T, std::void_t<decltype(&T::_field_count_)>> : std::true_type { };
+class IsReflected {
+private:
+    // 检查当前类是否包含 _field_count_
+    template<typename U, typename = decltype(std::declval<U>()._field_count_)>
+    static std::true_type test(int);
 
-//递归检查父类(未完成)
-template<typename T>
-struct IsReflected<T, std::void_t<decltype(&T::_field_count_)>> {
-    static constexpr bool value = IsReflected<typename std::remove_reference<T>::type>::value;
+    // 如果没有这个成员则选择此重载
+    template<typename>
+    static std::false_type test(...);
+
+    // 递归检查基类
+    template<typename U>
+    static auto check_base(int) -> decltype(IsReflected<typename std::remove_reference<decltype(std::declval<U>()._field_count_)>::type>::value, std::true_type());
+
+    template<typename>
+    static std::false_type check_base(...);
+
+    // 检查是否为 std::vector
+    template<typename U>
+    static auto check_vector(int) -> decltype(IsReflected<typename U::value_type>::value, std::true_type());
+
+    template<typename>
+    static std::false_type check_vector(...);
+public:
+    static constexpr bool value = decltype(test<T>(0))::value || decltype(check_base<T>(0))::value;
 };
 
 template<typename T>
