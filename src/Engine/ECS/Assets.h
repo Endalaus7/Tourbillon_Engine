@@ -101,7 +101,7 @@ namespace TourBillon
 			}
 			else//已注册类型
 			{
-				auto& ptr = m_allassets[typeIndex].data_ref;
+				auto& ptr = m_allassets[typeIndex].asset_ref;
 				if (ptr.find(asset->assetpath) != ptr.end())//已存在data
 				{
 					ptr[asset->assetpath]++;
@@ -116,7 +116,7 @@ namespace TourBillon
 				{
 					asset->assetdata = (T*)deferdelete_itr->data;
 					m_DeferredDeleteDatas.erase(deferdelete_itr);
-					m_allassets[typeIndex].data_ref.insert({ asset->assetpath, 1 });
+					m_allassets[typeIndex].asset_ref.insert({ asset->assetpath, 1 });
 					return;
 				}
 			}
@@ -128,9 +128,9 @@ namespace TourBillon
 
 				if (!loadResult)
 				{
-					LOG_ERROR("load asset error");
+					LOG_ERROR(asset->assetpath + " load asset error");
 				}
-				m_allassets[typeIndex].data_ref.insert({ asset->assetpath, 1 });
+				m_allassets[typeIndex].asset_ref.insert({ asset->assetpath, 1 });
 				return;
 			}
 		}
@@ -144,7 +144,7 @@ namespace TourBillon
 			if (m_allassets.find(typeIndex) == m_allassets.end())//未注册该类型
 				return false;
 
-			auto& ptr = m_allassets[typeIndex].data_ref;
+			auto& ptr = m_allassets[typeIndex].asset_ref;
 			if (ptr.find(asset->assetpath) == ptr.end())
 				return false;
 
@@ -191,13 +191,13 @@ namespace TourBillon
 		void deleteData(void* assetdata);
 
 		//用于记录所有指向该data的指针
-
 		struct AssetsPtr {
-			std::unordered_map<std::string ,uint32_t> data_ref;
+			std::unordered_map<std::string ,uint32_t> asset_ref;//名称标识和引用数
+			//std::unordered_map<uint32_t, void*> data_ref;//标识数和指针
 			//std::atomic<uint32_t>* ref_count = 0;//引用计数
 		};
 
-		std::unordered_map<std::type_index, AssetsPtr> m_allassets;//所有assetData指针
+		std::unordered_map<std::type_index, AssetsPtr> m_allassets;//按类型分类
 		//std::unordered_map<uint32_t, uint32_t> m_refs;
 
 		// 待删除的资源.

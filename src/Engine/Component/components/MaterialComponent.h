@@ -57,7 +57,6 @@ namespace TourBillon
 	{
 		STATIC_PROPERTY_CLASS_BEGIN(SubPassData)
 			STATIC_PROPERTY_DEF(PipelinePtr, bindPipeline)
-			STATIC_PROPERTY_DEF(ReflectPath, fragShaderPath)
 
 		STATIC_PROPERTY_CLASS_END()
 	};
