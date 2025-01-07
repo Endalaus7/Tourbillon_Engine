@@ -24,3 +24,5 @@
 
 2025_1_6:非文件载入的资源不使用assets，该类资源需要单独标识，避免和文件类资源混淆
 非文件类的资源用序列化文件路径标识（或特殊标记+文件名，避免key过长）
+
+2025_1_7:pass使用文件导入，pipeline直接继承RenderPipelineBase c++编写，之后加入rendersystem

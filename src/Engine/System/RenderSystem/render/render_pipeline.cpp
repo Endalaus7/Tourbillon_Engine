@@ -1,6 +1,6 @@
 #include "render_pipeline.h"
 #include "passes/main_camera_pass.h"
-void TourBillon::RenderPipeline::initialize(RenderPipelineInitInfo init_info)
+void TourBillon::RenderPipelineBase::initialize(RenderPipelineInitInfo init_info)
 {
 	m_rhi = init_info.rhi;
 
@@ -14,7 +14,7 @@ void TourBillon::RenderPipeline::initialize(RenderPipelineInitInfo init_info)
 	
 }
 
-void TourBillon::RenderPipeline::BeforeFrameDraw(float dt, RHIDrawInfo& drawinfo)
+void TourBillon::RenderPipelineBase::BeforeFrameDraw(float dt, RHIDrawInfo& drawinfo)
 {
 	for (auto pass : m_RenderPassList)
 	{
@@ -23,7 +23,7 @@ void TourBillon::RenderPipeline::BeforeFrameDraw(float dt, RHIDrawInfo& drawinfo
 	m_rhi->BeforeFrameDraw(dt);
 }
 
-void TourBillon::RenderPipeline::deferredRender(float dt, RHIDrawInfo& drawinfo)
+void TourBillon::RenderPipelineBase::deferredRender(float dt, RHIDrawInfo& drawinfo)
 {
 	drawinfo.reset();
 	drawinfo.resizeRenderEvents.addCallback([&](const CEvent&) {
@@ -51,12 +51,12 @@ void TourBillon::RenderPipeline::deferredRender(float dt, RHIDrawInfo& drawinfo)
 	
 }
 
-void TourBillon::RenderPipeline::AfterFrameDraw(float dt, RHIDrawInfo& drawinfo)
+void TourBillon::RenderPipelineBase::AfterFrameDraw(float dt, RHIDrawInfo& drawinfo)
 {
 	m_rhi->AfterFrameDraw(dt);
 }
 
-void TourBillon::RenderPipeline::passUpdateAfterRecreateSwapchain()
+void TourBillon::RenderPipelineBase::passUpdateAfterRecreateSwapchain()
 {
 	//std::shared_ptr<RenderPass> curr_renderpass = std::static_pointer_cast<RenderPass>(m_RenderPassList.head());
 	//while (curr_renderpass)
@@ -68,7 +68,7 @@ void TourBillon::RenderPipeline::passUpdateAfterRecreateSwapchain()
 	}
 }
 
-void TourBillon::RenderPipeline::SetMainCamera(uint32_t windowindex, Entity camera)
+void TourBillon::RenderPipelineBase::SetMainCamera(uint32_t windowindex, Entity camera)
 {
 	MainCameraPass* main_camera_pass = dynamic_cast<MainCameraPass*>(m_RenderPassList[Pass_MainCamera]);
 	if (main_camera_pass)

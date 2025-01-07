@@ -9,7 +9,7 @@ namespace TourBillon
 		std::shared_ptr<RHI>                rhi;
 		//std::shared_ptr<RenderResource> render_resource;
 	};
-	class RenderPipeline;
+	class RenderPipelineBase;
 	class RenderPass:public TBListMem
 	{
 	public:

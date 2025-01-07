@@ -14,7 +14,7 @@ void TourBillon::imageIO::init()
 
 void TourBillon::imageIO::loadPicture(const CEvent& event)
 {
-	TextureShared* texturePtr = (TextureShared*)event.event_data;
+	TexturePtr* texturePtr = (TexturePtr*)event.event_data;
 	auto path = texturePtr->getAssetPath();
 	
 	int width, height, texChannels;
@@ -27,7 +27,7 @@ void TourBillon::imageIO::loadPicture(const CEvent& event)
 	}
 		
 
-	Texture* loadingTexture = new Texture;
+	TextureData* loadingTexture = new TextureData;
 	loadingTexture->width = width;
 	loadingTexture->height = height;
 	loadingTexture->texChannels = texChannels;

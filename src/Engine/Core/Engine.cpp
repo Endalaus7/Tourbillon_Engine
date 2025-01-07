@@ -17,7 +17,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 
 
 	ECSManager::Instance()->RegisterComponent<RenderWindow>();
-	ECSManager::Instance()->RegisterComponent<GeometryShared>();
+	ECSManager::Instance()->RegisterComponent<GeometryPtr>();
 	ECSManager::Instance()->RegisterComponent<Camera3D>();
 	ECSManager::Instance()->RegisterComponent<Material>();
 	ECSManager::Instance()->RegisterComponent<Transfrom>();
@@ -77,7 +77,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	int index = 0;
 	std::vector<Entity> entities(8);
 
-	Geometry* mesh = new Geometry;
+	GeometryData* mesh = new GeometryData;
 	Vertex v1(Point3d(-0.5f, -0.5f, 0.f), Point2d(0.0f, 0.0f), ColorRGBA(1.0f, 0.0f, 0.0f, 1.0f));
 	Vertex v2(Point3d(0.5f, -0.5f, 0.f), Point2d(1.0f, 0.0f), ColorRGBA(0.0f, 1.0f, 0.0f, 1.0f));
 	Vertex v3(Point3d(0.5f, 0.5f, 0.f), Point2d(1.0f, 1.0f), ColorRGBA(0.0f, 0.0f, 1.0f, 1.0f));
@@ -106,7 +106,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 		trans.scale = TBMath::Vec3(1, 1, 1);
 		trans.position = TBMath::Vec3(1.1f * (index - 2), 0, 0);
 
-		GeometryShared meshptr;
+		GeometryPtr meshptr;
 		meshptr.setDeleteType(AssetsInfo::Delay_Render_Delete);
 		meshptr.setDelayFrame(3);
 		meshptr.setAssetData(mesh);
@@ -116,7 +116,7 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 		
 		ECSManager::Instance()->AddComponent<Material>(entity, material);
 		ECSManager::Instance()->AddComponent<Transfrom>(entity, trans);
-		ECSManager::Instance()->AddComponent<GeometryShared>(entity, meshptr);
+		ECSManager::Instance()->AddComponent<GeometryPtr>(entity, meshptr);
 		index++;
 	}
 }

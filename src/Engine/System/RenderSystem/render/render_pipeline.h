@@ -7,8 +7,8 @@
 #include "Math/mat44.hpp"
 #include "ECSManager.h"
 
-//渲染管线
-//通道可复用，不再属于一个渲染管线
+//渲染总管线
+//管线应当可以在c++自定义，继承此类后在rendersystem加入
 
 namespace TourBillon
 {
@@ -17,7 +17,7 @@ namespace TourBillon
 		//选择通道
 	};
 	struct RenderPassInitInfo;
-	class RenderPipeline
+	class RenderPipelineBase
 	{
 	public:
 		virtual void initialize(RenderPipelineInitInfo init_info);

@@ -46,7 +46,7 @@ void TourBillon::keyIO::updateKeyState(const CEvent& event)
 	if (buttons.keyvalue[GLFW_KEY_Q])
 	{
 		static int index = 2;
-		ECSManager::Instance()->RemoveComponent<GeometryShared>(index);
+		ECSManager::Instance()->RemoveComponent<GeometryPtr>(index);
 		ECSManager::Instance()->RemoveComponent<Transfrom>(index);
 		index++;
 	}

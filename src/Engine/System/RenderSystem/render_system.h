@@ -10,7 +10,7 @@
 namespace TourBillon
 {
 	struct WindowCreateInfo;
-	class RenderPipeline;
+	class RenderPipelineBase;
 	class RenderSource;
 
 	struct RenderSystemInitInfo:public SystemInitInfo
@@ -33,7 +33,7 @@ namespace TourBillon
 		void rendLoop(std::function<void(float)> beforeRender, std::function<void(float)> afterRender);
 		void clear();
 
-		void loadMeshBuffer(Geometry& mesh);
+		void loadMeshBuffer(GeometryData& mesh);
 
 		void SetMainCamera(uint32_t windowindex, Entity camera);
 
@@ -45,7 +45,7 @@ namespace TourBillon
 
 		std::shared_ptr<RHI> m_rhi;//È«¾ÖÎ¨Ò»
 		TBVector<std::shared_ptr<RHIWindow>> m_rhiWindows;
-		std::shared_ptr<RenderPipeline> m_renderPipeline;
+		std::shared_ptr<RenderPipelineBase> m_renderPipeline;
 		std::shared_ptr<RenderSource> m_rendersource;
 		
 

@@ -15,6 +15,8 @@ namespace TourBillon {
 			LOAD_MODEL,//GeometryShared*
 			//LOAD_MODEL_FINISHED,
 
+			LOAD_SHADER,//Shader*
+
 
 			KEY_CHANGE,//entity id
 			MOUSE_MOVE,//entity id

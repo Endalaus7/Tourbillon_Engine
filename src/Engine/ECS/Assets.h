@@ -52,7 +52,6 @@ namespace TourBillon
 
 		virtual void insertData() 
 		{
-			
 			AssetsManager::Instance()->registerAsset<T>(this);
 		}
 		virtual void releaseData()

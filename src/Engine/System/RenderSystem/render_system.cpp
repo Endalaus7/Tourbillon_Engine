@@ -55,7 +55,7 @@ void TourBillon::RenderSystem::initialize(SystemInitInfo* init_info)
 
     RenderPipelineInitInfo render_pipeline_init_info;
     render_pipeline_init_info.rhi = m_rhi;
-    m_renderPipeline = std::make_shared<RenderPipeline>();
+    m_renderPipeline = std::make_shared<RenderPipelineBase>();
     m_renderPipeline->initialize(render_pipeline_init_info);
 
 }
@@ -123,7 +123,7 @@ void TourBillon::RenderSystem::clear()
     m_vertex_cache.clear();
 }
 
-void TourBillon::RenderSystem::loadMeshBuffer(Geometry& mesh)
+void TourBillon::RenderSystem::loadMeshBuffer(GeometryData& mesh)
 {
     uint64_t vertexbufferSize = static_cast<uint64_t>(mesh.vertexArray.size() * sizeof(Vertex));
     m_rhi->createVertexBuffer((void*)mesh.vertexArray.data(), vertexbufferSize, mesh.vertexBuffer->buffer, mesh.vertexBuffer->buffermemory);

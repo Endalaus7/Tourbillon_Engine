@@ -1,21 +1,21 @@
-#include "main_camera_pass.h"
+#include "general_pass.h"
 #include <array>
 #include <vulkan/vulkan_core.h>
 #include "Components/GeometryComponent.h"
 #include "Components/CameraComponent.h"
 
-TourBillon::MainCameraPass::~MainCameraPass()
+TourBillon::GeneralPass::~GeneralPass()
 {
 	//vk方面的东西要清理
 
 	SAFE_DELETE(m_uniformbuffer);
 	SAFE_DELETE(m_uniformdynamicbuffer);
 }
-void TourBillon::MainCameraPass::initialize(const RenderPassInitInfo* init_info)
+void TourBillon::GeneralPass::initialize(const RenderPassInitInfo* init_info)
 {
 	RenderPass::initialize(init_info);
 
-	const MainCameraPassInitInfo* _init_info = static_cast<const MainCameraPassInitInfo*>(init_info);
+	const GeneralPassInitInfo* _init_info = static_cast<const GeneralPassInitInfo*>(init_info);
 	//m_framebuffer.render_pass = _init_info->render_pass;
 
 
@@ -32,12 +32,12 @@ void TourBillon::MainCameraPass::initialize(const RenderPassInitInfo* init_info)
 	//updateDescriptorSet();
 }
 
-void TourBillon::MainCameraPass::postInitialize()
+void TourBillon::GeneralPass::postInitialize()
 {
 
 }
 
-void TourBillon::MainCameraPass::beforeDraw(float dt, RHIDrawInfo& drawinfo)
+void TourBillon::GeneralPass::beforeDraw(float dt, RHIDrawInfo& drawinfo)
 {
 	updateUboData();
 	//updateUniformDescriptorSet();
@@ -80,7 +80,7 @@ void TourBillon::MainCameraPass::beforeDraw(float dt, RHIDrawInfo& drawinfo)
 	}
 }
 
-void TourBillon::MainCameraPass::drawPass(float dt, RHIDrawInfo& drawinfo)
+void TourBillon::GeneralPass::drawPass(float dt, RHIDrawInfo& drawinfo)
 {
 	updateUniformUboData(drawinfo.windowIndex);
 	
@@ -115,13 +115,13 @@ void TourBillon::MainCameraPass::drawPass(float dt, RHIDrawInfo& drawinfo)
 	m_rhi->UpdateDraw(dt, drawinfo);
 }
 
-void TourBillon::MainCameraPass::setup_DescriptorSetLayout()
+void TourBillon::GeneralPass::setup_DescriptorSetLayout()
 {
 	///m_descriptor_infos.apply(1);
 	setupDescriptorSet();
 }
 
-void TourBillon::MainCameraPass::setup_RenderPass()
+void TourBillon::GeneralPass::setup_RenderPass()
 {
 	RHIRenderPassCreateInfo renderpass_create_info;
 	RHIRenderPassCreateInfo::AttachmentEntry attachment_create_info;
@@ -138,7 +138,7 @@ void TourBillon::MainCameraPass::setup_RenderPass()
 	m_rhi->createRenderPass(&renderpass_create_info, m_framebuffer.render_pass);
 }
 
-void TourBillon::MainCameraPass::setup_Pipeline()
+void TourBillon::GeneralPass::setup_Pipeline()
 {
 	RHIPipelineCreateInfo rhi_pipeline_create_info;
 	rhi_pipeline_create_info.renderpass = m_framebuffer.render_pass;
@@ -165,7 +165,7 @@ void TourBillon::MainCameraPass::setup_Pipeline()
 	m_render_pipelines[0] = rhi_create_pipeline;
 }
 
-void TourBillon::MainCameraPass::setup_FrameBuffer()
+void TourBillon::GeneralPass::setup_FrameBuffer()
 {
 	RHIFramebufferCreateInfo rhi_framebuffer_init_info;
 	uint32_t windowsize = m_rhi->m_windowSize;
@@ -185,7 +185,7 @@ void TourBillon::MainCameraPass::setup_FrameBuffer()
 	}
 }
 
-void TourBillon::MainCameraPass::destroyFramebuffer()
+void TourBillon::GeneralPass::destroyFramebuffer()
 {
 	for(auto& windowframes:m_framebuffer.framebuffers)
 	{
@@ -194,16 +194,16 @@ void TourBillon::MainCameraPass::destroyFramebuffer()
 	}
 }
 
-void TourBillon::MainCameraPass::updateDescriptorSets(float dt, RHIDrawInfo& drawinfo)
+void TourBillon::GeneralPass::updateDescriptorSets(float dt, RHIDrawInfo& drawinfo)
 {
 }
 
-void TourBillon::MainCameraPass::cacheUniformObject(const TBMath::Mat44& proj_view_matrix)
+void TourBillon::GeneralPass::cacheUniformObject(const TBMath::Mat44& proj_view_matrix)
 {
 	m_uniform_buffer_object.proj_view_matrix = proj_view_matrix;
 }
 
-void TourBillon::MainCameraPass::cacheUniformDynamicObject()
+void TourBillon::GeneralPass::cacheUniformDynamicObject()
 {
 	size_t trans_obj_count = ECSManager::Instance()->GetComponentSize<Transfrom>();
 	m_uniform_buffer_dynamic_object_cache.resize(trans_obj_count);
@@ -219,14 +219,14 @@ void TourBillon::MainCameraPass::cacheUniformDynamicObject()
 	}
 }
 
-void TourBillon::MainCameraPass::setMainCamera(uint32_t windowindex, Entity camera)
+void TourBillon::GeneralPass::setMainCamera(uint32_t windowindex, Entity camera)
 {
 	if (windowindex >= m_camera.size())
 		m_camera.resize(windowindex + 1);
 	m_camera[windowindex] = camera;
 }
 
-void TourBillon::MainCameraPass::updateUboData()
+void TourBillon::GeneralPass::updateUboData()
 {
 	cacheUniformDynamicObject();
 	//clear vk resource
@@ -236,7 +236,7 @@ void TourBillon::MainCameraPass::updateUboData()
 	}
 }
 
-void TourBillon::MainCameraPass::updateUniformUboData(uint32_t windowindex)
+void TourBillon::GeneralPass::updateUniformUboData(uint32_t windowindex)
 {
 	Entity entity = m_camera[windowindex];
 	Camera3D& camera = ECSManager::Instance()->GetComponent<Camera3D>(m_camera[windowindex]);
@@ -247,13 +247,13 @@ void TourBillon::MainCameraPass::updateUniformUboData(uint32_t windowindex)
 	cacheUniformObject(result);
 }
 
-void TourBillon::MainCameraPass::updateUboBuffer(RHIDrawInfo& info)
+void TourBillon::GeneralPass::updateUboBuffer(RHIDrawInfo& info)
 {
 	m_rhi->updateBuffer((void*)&m_uniform_buffer_object, info.windowIndex, m_uniformbuffer->buffer, 0, sizeof(UniformBufferObject));
 	m_rhi->updateBuffer((void*)m_uniform_buffer_dynamic_object_cache.data(), info.windowIndex, m_uniformdynamicbuffer->buffer, 0, sizeof(UniformBufferDynamicObject) * m_uniform_buffer_dynamic_object_cache.size());
 }
 
-void TourBillon::MainCameraPass::updateMVPDescriptorSet()
+void TourBillon::GeneralPass::updateMVPDescriptorSet()
 {
 	RHIUpdatesDescriptorSetsInfo update_descriptorsets_info;
 	update_descriptorsets_info.write_info.resize(2);
@@ -275,12 +275,12 @@ void TourBillon::MainCameraPass::updateMVPDescriptorSet()
 	m_rhi->updateDescriptorSets(update_descriptorsets_info);
 }
 
-void TourBillon::MainCameraPass::updateImageDescriptorSet()
+void TourBillon::GeneralPass::updateImageDescriptorSet()
 {
 
 }
 
-void TourBillon::MainCameraPass::dirtyUniformBuffer()
+void TourBillon::GeneralPass::dirtyUniformBuffer()
 {
 	uint64_t uboDynamicBufferSize = static_cast<uint64_t>(m_uniform_buffer_dynamic_object_cache.size() * sizeof(UniformBufferDynamicObject));
 	//if(m_uniformbuffer->buffer && m_uniformdynamicbuffer->buffer)
@@ -292,7 +292,7 @@ void TourBillon::MainCameraPass::dirtyUniformBuffer()
 	
 }
 
-void TourBillon::MainCameraPass::setupDescriptorSet()
+void TourBillon::GeneralPass::setupDescriptorSet()
 {
 	RHIDescriptorSetLayoutBinding mesh_uboLayoutBinding[2];
 

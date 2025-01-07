@@ -12,8 +12,8 @@ void TourBillon::RenderSource::init(RenderSystem* render_system)
 
 void TourBillon::RenderSource::loadTexture(const CEvent& event)
 {
-	TextureShared* texturePtr = (TextureShared*)event.event_data;
-	Texture* textureData = dynamic_cast<Texture*>(texturePtr->getData());
+	TexturePtr* texturePtr = (TexturePtr*)event.event_data;
+	TextureData* textureData = dynamic_cast<TextureData*>(texturePtr->getData());
 	if (!textureData)return;
 	size_t imageSize = textureData->width * textureData->height * 4;
 	m_render_system->m_rhi->createTextureImage(textureData, imageSize, textureData->width, textureData->height, textureData->texChannels, textureData->image_buffer, textureData->buffer_memory);
@@ -30,8 +30,8 @@ void TourBillon::RenderSource::loadTexture(const CEvent& event)
 
 void TourBillon::RenderSource::releaseTexture(const CEvent& event)
 {
-	TextureShared* texturePtr = (TextureShared*)event.event_data;
-	Texture* textureData = dynamic_cast<Texture*>(texturePtr->getData());
+	TexturePtr* texturePtr = (TexturePtr*)event.event_data;
+	TextureData* textureData = dynamic_cast<TextureData*>(texturePtr->getData());
 	if (!textureData)return;
 	m_render_system->m_rhi->destroySampler(textureData->sampler);
 	m_render_system->m_rhi->destroyImage(textureData->image_buffer);

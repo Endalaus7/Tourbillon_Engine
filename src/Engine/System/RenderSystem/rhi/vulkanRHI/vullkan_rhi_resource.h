@@ -74,6 +74,8 @@ namespace TourBillon
 	{
 		VkSampler sampler;
 	};
+
+	//改为动态
 	static VkVertexInputBindingDescription getVertexBindingDescription() {
 		VkVertexInputBindingDescription bindingDescription{};
 		bindingDescription.binding = 0;
@@ -83,6 +85,7 @@ namespace TourBillon
 		return bindingDescription;
 	}
 
+	//改为动态
 	static std::vector<VkVertexInputAttributeDescription> getVertexAttributeDescriptions() {
 		std::vector<VkVertexInputAttributeDescription> attributeDescriptions(Vertex::_field_count_);
 
