@@ -46,6 +46,8 @@ public:
     std::byte* m_data;//Ê×µØÖ·
     ReflectName classname;
     
+
+    void* getData(ReflectName* name);
 private:
     std::pmr::unordered_map<ReflectName, DynamicTypeInfo> members;
 };

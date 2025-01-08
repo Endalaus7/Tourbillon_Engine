@@ -7,7 +7,7 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${HEADER_FILES} ${SOURCE_F
 
 add_library(${PROJECT_NAME} STATIC  ${HEADER_FILES} ${SOURCE_FILES})
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${Component_PATH} ${CMAKE_CURRENT_SOURCE_DIR})
+target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_include_directories(${PROJECT_NAME} PRIVATE ${THIRD_PARTY_DIR}/stb ${GLFW_INCLUDE_DIR})
 
 message(${THIRD_PARTY_DIR}/stb)
