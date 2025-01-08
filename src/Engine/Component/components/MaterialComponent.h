@@ -14,7 +14,7 @@ namespace TourBillon
 {
 	struct Material :public Component
 	{
-		STATIC_PROPERTY_CLASS_BEGIN(Material)
+		STATIC_PROPERTY_CLASS_BEGIN()
 			STATIC_PROPERTY_DEF(ColorRGBA, basecolor)
 			STATIC_PROPERTY_DEF(TexturePtr, MainTexture)
 			//STATIC_PROPERTY_DEF(PassPtr, passes)

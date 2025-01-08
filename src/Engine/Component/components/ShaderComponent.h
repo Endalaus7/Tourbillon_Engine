@@ -14,7 +14,7 @@ namespace TourBillon
 	
 	struct Pass
 	{
-		STATIC_PROPERTY_CLASS_BEGIN(Pass)
+		STATIC_PROPERTY_CLASS_BEGIN()
 			
 		STATIC_PROPERTY_CLASS_END()
 	};
@@ -22,7 +22,7 @@ namespace TourBillon
 	
 	struct ShaderData
 	{
-		STATIC_PROPERTY_CLASS_BEGIN(ShaderData)
+		STATIC_PROPERTY_CLASS_BEGIN()
 			STATIC_PROPERTY_DEF()
 		STATIC_PROPERTY_CLASS_END()
 	};

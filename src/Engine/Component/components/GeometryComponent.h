@@ -20,7 +20,7 @@ namespace TourBillon
 	{
 		Vertex( Point3d pos_arg, Point2d uv_arg, ColorRGBA color_arg) :
 			pos(pos_arg), uv(uv_arg), color(color_arg) {}
-		STATIC_PROPERTY_CLASS_BEGIN(Vertex)
+		STATIC_PROPERTY_CLASS_BEGIN()
 			STATIC_PROPERTY_DEF(Point3d, pos)
 			STATIC_PROPERTY_DEF(Point2d, uv)
 			//Normal
@@ -33,7 +33,7 @@ namespace TourBillon
 	//static mesh
 	struct GeometryData 
 	{
-		STATIC_PROPERTY_CLASS_BEGIN(GeometryData)
+		STATIC_PROPERTY_CLASS_BEGIN()
 			STATIC_PROPERTY_DEF(ReflectPath, modelPath)//可以是相对路径
 			//STATIC_PROPERTY_DEF(AABBBox, geometryAABB)//TODO
 			STATIC_PROPERTY_DEF_ARRAY(Vertex, vertexArray)
@@ -50,13 +50,4 @@ namespace TourBillon
 		~GeometryPtr()override {}
 		virtual GeometryData* loadData()override;
 	}; 
-
-	//struct TestComponent : public Transfrom
-	//{
-	//	//STATIC_PROPERTY_CLASS_BEGIN_PARENT(TestComponent, Transfrom)
-	//	STATIC_PROPERTY_CLASS_BEGIN(TestComponent)
-	//		STATIC_PROPERTY_DEF(double, x)
-	//		STATIC_PROPERTY_DEF(double, y)
-	//		STATIC_PROPERTY_CLASS_END()
-	//};
 }

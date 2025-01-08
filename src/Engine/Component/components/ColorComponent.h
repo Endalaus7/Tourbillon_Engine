@@ -13,7 +13,7 @@ namespace TourBillon
 	{
 		ColorRGBA() :rgba() {}
 		ColorRGBA(Real x, Real y, Real z, Real w) :rgba(x, y, z, w) {}
-		STATIC_PROPERTY_CLASS_BEGIN(ColorRGBA)
+		STATIC_PROPERTY_CLASS_BEGIN()
 			STATIC_PROPERTY_DEF(TBMath::Vec4, rgba)
 		STATIC_PROPERTY_CLASS_END()
 	};

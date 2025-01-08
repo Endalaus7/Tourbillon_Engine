@@ -9,7 +9,7 @@ namespace TourBillon
 {
 	struct Buttons : public Component
 	{
-		STATIC_PROPERTY_CLASS_BEGIN(Buttons)
+		STATIC_PROPERTY_CLASS_BEGIN()
 			STATIC_PROPERTY_DEF(uint32_t, baseWindow)
 			STATIC_PROPERTY_DEF(KeyValues, keyvalue)
 		STATIC_PROPERTY_CLASS_END()
@@ -18,7 +18,7 @@ namespace TourBillon
 	struct Mouse : public Component
 	{
 		Mouse() :pressLeft(false), pressRight(false) {}
-		STATIC_PROPERTY_CLASS_BEGIN(Mouse)
+		STATIC_PROPERTY_CLASS_BEGIN()
 			STATIC_PROPERTY_DEF(uint32_t, baseWindow)
 			STATIC_PROPERTY_DEF(bool, pressLeft)
 			STATIC_PROPERTY_DEF(bool, pressRight)

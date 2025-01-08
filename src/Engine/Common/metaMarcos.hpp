@@ -32,5 +32,6 @@ inline constexpr bool IsType(const U& obj) {
 
 
 using ReflectPath = std::string;
+using ReflectName = std::string;
 
 

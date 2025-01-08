@@ -15,7 +15,7 @@ namespace TourBillon
 {
 	struct Camera3D:public Component
 	{
-		STATIC_PROPERTY_CLASS_BEGIN(Camera3D)
+		STATIC_PROPERTY_CLASS_BEGIN()
 			//STATIC_PROPERTY_DEF(TBMath::Vec3, pos)
 			//STATIC_PROPERTY_DEF(TBMath::Vec3, lookat)
 			//STATIC_PROPERTY_DEF(TBMath::Vec3, up)
