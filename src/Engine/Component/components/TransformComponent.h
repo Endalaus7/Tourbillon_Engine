@@ -17,7 +17,7 @@ namespace TourBillon
 
 	struct Transfrom :public Component
 	{
-		STATIC_PROPERTY_CLASS_BEGIN(Transfrom)
+		STATIC_PROPERTY_CLASS_BEGIN()
 			STATIC_PROPERTY_DEF(TBMath::Vec3, position)
 			STATIC_PROPERTY_DEF(TBMath::Vec3, rotation)//pitch yaw roll(angle)
 			STATIC_PROPERTY_DEF(TBMath::Vec3, scale)

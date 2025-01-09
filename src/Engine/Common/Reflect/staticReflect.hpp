@@ -139,3 +139,4 @@ constexpr static bool IsArray_t = is_specialization<T, TBVector>::value;
 #define IsArray_v(var) IsArray_t<std::remove_reference<decltype(var)>::type>
 
 #define IsInt_v(var) IsType<int>(var)
+

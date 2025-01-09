@@ -13,7 +13,7 @@ namespace TourBillon
 			:title("render window "+std::to_string(index)),
 			isFullscreen(false)
 		{}
-		STATIC_PROPERTY_CLASS_BEGIN(RenderWindow)
+		STATIC_PROPERTY_CLASS_BEGIN()
 			STATIC_PROPERTY_DEF(uint32_t, index)
 			STATIC_PROPERTY_DEF(Entity, camera)
 			STATIC_PROPERTY_DEF(uint32_t, width)

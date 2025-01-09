@@ -115,7 +115,7 @@ public:
 #endif
 
         // 如果新数组比旧数组大，拷贝旧数组数据
-        std::size_t copy_size = std::min(_size, new_size);
+        std::size_t copy_size = min(_size, new_size);
         std::copy(_data, _data + copy_size, new_data);
 
         _aligned_free(_data);

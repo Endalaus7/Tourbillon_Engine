@@ -26,3 +26,5 @@
 非文件类的资源用序列化文件路径标识（或特殊标记+文件名，避免key过长）
 
 2025_1_7:pass使用文件导入，pipeline直接继承RenderPipelineBase c++编写，之后加入rendersystem
+
+2025_1_9:c++需要升级到c20

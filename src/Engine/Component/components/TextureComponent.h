@@ -17,7 +17,7 @@ namespace TourBillon
 
 	struct TextureData
 	{
-		STATIC_PROPERTY_CLASS_BEGIN(TextureData)
+		STATIC_PROPERTY_CLASS_BEGIN()
 			STATIC_PROPERTY_DEF(int, width)
 			STATIC_PROPERTY_DEF(int, height)
 			STATIC_PROPERTY_DEF(int, texChannels)

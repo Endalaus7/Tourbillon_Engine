@@ -10,8 +10,8 @@ TourBillon::GeometryData* TourBillon::GeometryPtr::loadData()
 {
 	//发送加载事件，IO系统处理
 	ECSManager::Instance()->SendEvent(Events::LOAD_MODEL, (void*)this);
-	return dynamic_cast<GeometryData*>(assetdata);
 
+	return dynamic_cast<GeometryData*>(assetdata);
 }
 #if 0
 void TourBillon::test()
