@@ -17,6 +17,8 @@ namespace TourBillon
 	{
 		RHI_TYPE rhi_type;
 		uint32_t frame_rate = 60;
+		//后续删除，rendersystem只分配渲染和窗口的映射关系
+		//窗口信息记录在renderwindow中（对应一个rhiwindow）
 		uint32_t window_width = 500;
 		uint32_t window_height = 500;
 		uint32_t window_num = 1;

@@ -25,6 +25,10 @@
 2025_1_6:非文件载入的资源不使用assets，该类资源需要单独标识，避免和文件类资源混淆
 非文件类的资源用序列化文件路径标识（或特殊标记+文件名，避免key过长）
 
-2025_1_7:pass使用文件导入，pipeline直接继承RenderPipelineBase c++编写，之后加入rendersystem
+2025_1_7:pass使用文件导入（暂时取消，没必要且浪费时间），pipeline直接继承RenderPipelineBase c++编写，之后加入rendersystem
 
 2025_1_9:c++需要升级到c20
+
+2025_2_19:首要任务是把rhi中繁琐的window部分迁移到rhiwindow，rhi不负责保存非单例的信息；抽象一层renderwindow供输入camera等，用于绑定实体信息
+完成上述任务之后，将MainCameraPass中的操作简化，编写材质脚本。
+系统修改：文件类资源应该不属于组件，可以反射但应该单独继承一个资源类

@@ -9,6 +9,9 @@
 #include <optional>
 #include "vullkan_rhi_resource.h"
 
+//rhi是唯一的，因此不应该存储window、Swapchain、Semaphore、Fence的成员信息，而是存到rhiwindow中
+
+
 namespace TourBillon
 {
     class VulkanWindow;

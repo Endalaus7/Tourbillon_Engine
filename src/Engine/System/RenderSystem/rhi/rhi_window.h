@@ -6,6 +6,8 @@
 #include "components/KeysComponent.h"
 #include "components/WindowComponent.h"
 
+//rhiwindow上需要套一层renderwindow，用于分配camera、scene等上下文资源
+
 namespace TourBillon
 {
 	class RHIWindow;

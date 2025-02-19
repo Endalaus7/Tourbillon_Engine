@@ -1,6 +1,6 @@
 #include "dynamicReflect.h"
 
-std::unordered_map<ReflectName, ConverterBase*> g_typeConverter;
+//std::unordered_map<ReflectName, ConverterBase*> g_typeConverter;
 
 void registerDynType()
 {
@@ -44,7 +44,7 @@ void DynamicReflect::RegisterMember(const ReflectName& name, const ReflectName& 
 
 void DynamicReflect::EndRegister(DynamicReflect& refl)
 {
-    size_t size = (curr_offset + curr_aligment - 1) & ~(curr_aligment - 1);
+    size_t size = 0;// (curr_offset + curr_aligment - 1) & ~(curr_aligment - 1);
     std::vector<char> buffer(size);
     //
     std::pmr::monotonic_buffer_resource resource(buffer.data(), size);
