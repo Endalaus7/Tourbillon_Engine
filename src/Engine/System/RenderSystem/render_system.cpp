@@ -24,37 +24,20 @@ void TourBillon::RenderSystem::initialize(SystemInitInfo* init_info)
     if (!render_init_info)
         return;
 
-    WindowCreateInfo window_create_info;
-    window_create_info.width = render_init_info->window_width;
-    window_create_info.height = render_init_info->window_height;
-    window_create_info.title = "render window";
-    window_create_info.sharedwindow = nullptr;
-
-    m_rhiWindows.resize(render_init_info->window_num);
-
-    uint32_t windowindex = 0;
-    for(auto& rhiwindow: m_rhiWindows)
-    {
-        window_create_info.index = windowindex;
-        rhiwindow = RHI_Factory::Instance()->createRHIWindow(render_init_info->rhi_type);
-        rhiwindow->initialize(window_create_info);
-        //if (!window_create_info.sharedwindow)
-        //    window_create_info.sharedwindow = rhiwindow;
-        windowindex++;
-    }
-
+    
     m_frame_rate = render_init_info->frame_rate;
 
-    m_rendersource = std::make_shared<RenderSource>();
-    m_rendersource->init(this);
+    m_rendersourcemanager = std::make_shared<RenderSourceManager>();
+    m_rendersourcemanager->init(this);
 
     RHIInitInfo rhi_init_info;
-    rhi_init_info.window_systems = m_rhiWindows;
-    m_rhi = RHI_Factory::Instance()->createRHI(render_init_info->rhi_type);
-    m_rhi->initialize(rhi_init_info);
+    
+    //rhi_init_info.window_systems = m_rhiWindows;
+    std::shared_ptr<TourBillon::RHI> rhi = RHI_Factory::Instance()->getRHI(render_init_info->rhi_type);
+    rhi->initialize(rhi_init_info);
 
     RenderPipelineInitInfo render_pipeline_init_info;
-    render_pipeline_init_info.rhi = m_rhi;
+    //render_pipeline_init_info.rhi = rhi;
     m_renderPipeline = std::make_shared<RenderPipelineBase>();
     m_renderPipeline->initialize(render_pipeline_init_info);
 
@@ -116,32 +99,37 @@ void TourBillon::RenderSystem::rendLoop(std::function<void(float)> beforeRender,
 
 void TourBillon::RenderSystem::clear()
 {
-    m_rhi.reset();
-    for(auto rhiwindow: m_rhiWindows)
-        rhiwindow.reset();
+    std::shared_ptr<TourBillon::RHI> rhi = RHI_Factory::Instance()->getRHI(VULKAN_RHI);
+    rhi.reset();
+    for (auto rhiwindow : m_rhiWindows)
+    {
+        //rhiwindow.reset();
+    }
     clearBuffers();
     m_vertex_cache.clear();
 }
 
 void TourBillon::RenderSystem::loadMeshBuffer(GeometryData& mesh)
 {
+    std::shared_ptr<TourBillon::RHI> rhi = RHI_Factory::Instance()->getRHI(VULKAN_RHI);
+
     uint64_t vertexbufferSize = static_cast<uint64_t>(mesh.vertexArray.size() * sizeof(Vertex));
-    m_rhi->createVertexBuffer((void*)mesh.vertexArray.data(), vertexbufferSize, mesh.vertexBuffer->buffer, mesh.vertexBuffer->buffermemory);
+    rhi->createVertexBuffer((void*)mesh.vertexArray.data(), vertexbufferSize, mesh.vertexBuffer->buffer, mesh.vertexBuffer->buffermemory);
 
     uint64_t indexbufferSize = static_cast<uint64_t>(mesh.indexArray.size() * sizeof(Index_3P));
-    m_rhi->createIndexBuffer((void*)mesh.indexArray.data(), indexbufferSize, mesh.indexBuffer->buffer, mesh.indexBuffer->buffermemory);
+    rhi->createIndexBuffer((void*)mesh.indexArray.data(), indexbufferSize, mesh.indexBuffer->buffer, mesh.indexBuffer->buffermemory);
 }
 
-void TourBillon::RenderSystem::SetMainCamera(uint32_t windowindex, Entity camera)
-{
-    m_renderPipeline->SetMainCamera(windowindex, camera);
-    m_rhiWindows[windowindex]->setCamera(camera);
-}
+//void TourBillon::RenderSystem::SetMainCamera(uint32_t windowindex, Entity camera)
+//{
+//    m_renderPipeline->SetMainCamera(windowindex, camera);
+//    m_rhiWindows[windowindex]->setCamera(camera);
+//}
 
 void TourBillon::RenderSystem::clearBuffers()
 {
-	RHIResourceManager::Instance()->Release(m_vertexbuffer, 5);
-	m_vertexbuffer = nullptr;
+	//RHIResourceManager::Instance()->Release(m_vertexbuffer, 5);
+	//m_vertexbuffer = nullptr;
 }
 
 bool TourBillon::RenderSystem::shouldClose()

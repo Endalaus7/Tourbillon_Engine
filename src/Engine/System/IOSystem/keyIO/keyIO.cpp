@@ -20,7 +20,7 @@ void TourBillon::keyIO::updateKeyState(const CEvent& event)
 	Entity window_entity = (Entity)event.event_data;
 	auto& buttons = ECSManager::Instance()->GetComponent<Buttons>(window_entity);
 	
-	auto& window = ECSManager::Instance()->GetComponent<RenderWindow>(buttons.baseWindow);
+	auto& window = ECSManager::Instance()->GetComponent<ECSWindow>(buttons.baseWindow);
 	
 	if (buttons.keyvalue[GLFW_KEY_A])
 	{
@@ -56,7 +56,7 @@ void TourBillon::keyIO::updateMouseState(const CEvent& event)
 {
 	Entity window_entity = (Entity)event.event_data;
 	auto& mouse = ECSManager::Instance()->GetComponent<Mouse>(window_entity);
-	auto& window = ECSManager::Instance()->GetComponent<RenderWindow>(mouse.baseWindow);
+	auto& window = ECSManager::Instance()->GetComponent<ECSWindow>(mouse.baseWindow);
 	if (mouse.pressRight)
 	{
 		auto& trans = ECSManager::Instance()->GetComponent<Transfrom>(window.camera);

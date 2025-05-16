@@ -27,7 +27,7 @@ namespace TourBillon
 		virtual void setup_DescriptorSetLayout()override;
 		virtual void setup_RenderPass()override;
 		virtual void setup_Pipeline()override;
-		virtual void setup_FrameBuffer()override;
+		//virtual void setup_FrameBuffer()override;
 
 		virtual void destroyFramebuffer()override;
 

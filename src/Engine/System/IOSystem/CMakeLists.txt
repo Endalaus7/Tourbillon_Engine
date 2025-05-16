@@ -8,11 +8,12 @@ source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${HEADER_FILES} ${SOURCE_F
 add_library(${PROJECT_NAME} STATIC  ${HEADER_FILES} ${SOURCE_FILES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_include_directories(${PROJECT_NAME} PRIVATE ${THIRD_PARTY_DIR}/stb ${GLFW_INCLUDE_DIR})
+target_include_directories(${PROJECT_NAME} PRIVATE ${THIRD_PARTY_DIR}/stb ${GLFW_INCLUDE_DIR} ${THIRD_PARTY_DIR}/jsoncpp/include ${THIRD_PARTY_DIR}/cereal/include)
 
 message(${THIRD_PARTY_DIR}/stb)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ECS Component)
+target_link_libraries(${PROJECT_NAME} PRIVATE jsoncpp_static)
+target_link_libraries(${PROJECT_NAME} PUBLIC RenderSystem CustomWindowSystem Component)
 
 target_compile_definitions(${PROJECT_NAME} PUBLIC DATA_DIR="${DATA_DIR}")
 

@@ -16,7 +16,7 @@ namespace TourBillon
 
 	class RHIBufferResource;
 
-	struct Vertex
+	struct Vertex :public Reflectable
 	{
 		Vertex( Point3d pos_arg, Point2d uv_arg, ColorRGBA color_arg) :
 			pos(pos_arg), uv(uv_arg), color(color_arg) {}
@@ -31,7 +31,7 @@ namespace TourBillon
 	};
 
 	//static mesh
-	struct GeometryData 
+	struct GeometryData :public Reflectable
 	{
 		STATIC_PROPERTY_CLASS_BEGIN()
 			STATIC_PROPERTY_DEF(ReflectPath, modelPath)//可以是相对路径

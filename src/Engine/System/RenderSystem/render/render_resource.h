@@ -3,10 +3,11 @@
 #include "render_system.h"
 
 //负责渲染资源的管理，属于rendersystem的一部分
-
+//实现转移到vulkanrhi
 namespace TourBillon
 {
-	class RenderSource
+	class RenderSourceManager
+
 	{
 		//friend RenderSystem;
 	public:

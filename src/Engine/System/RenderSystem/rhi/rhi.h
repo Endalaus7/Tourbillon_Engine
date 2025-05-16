@@ -9,6 +9,8 @@
 #include "Structure/TB_List.hpp"
 
 
+//rhi的instance
+
 namespace TourBillon
 {
 	class RHIWindow;
@@ -20,7 +22,7 @@ namespace TourBillon
 
 	struct RHIInitInfo
 	{
-		TBVector<std::shared_ptr<RHIWindow>> window_systems;
+		//TBVector<std::shared_ptr<RHIWindow>> window_systems;
 	};
 
 	
@@ -30,11 +32,11 @@ namespace TourBillon
 	public:
 		virtual ~RHI() = 0;
 		virtual void initialize(RHIInitInfo& initialize_info) = 0;
-		virtual void createSwapchain(uint32_t index) = 0;
+		//virtual void createSwapchain(uint32_t index) = 0;
 		virtual void createCommandPool() = 0;
-		virtual bool createRenderPass(const RHIRenderPassCreateInfo* pCreateInfo, RHIRenderPass*& pRenderPass) = 0;
-		virtual bool createGraphicsPipeline(const RHIPipelineCreateInfo* pCreateInfo, RHIPipeline*& pPipeline) = 0;
-		virtual bool createFrameBuffer(const RHIFramebufferCreateInfo* pCreateInfo, RHIFramebuffer*& pPipeline) = 0;
+		//virtual bool createRenderPass(const RHIRenderPassCreateInfo* pCreateInfo, RHIRenderPass*& pRenderPass) = 0;
+		//virtual bool createGraphicsPipeline(const RHIPipelineCreateInfo* pCreateInfo, RHIPipeline*& pPipeline) = 0;
+		//virtual bool createFrameBuffer(const RHIFramebufferCreateInfo* pCreateInfo, RHIFramebuffer*& pPipeline) = 0;
 		//virtual void UpdateDraw(float dt) = 0;
 
 		virtual void BeforeFrameDraw(float dt) = 0;
@@ -44,7 +46,7 @@ namespace TourBillon
 		virtual void AfterFrameDraw(float dt) = 0;
 
 		virtual void waitFrameTime(float wait_deltaTime) = 0;
-		virtual RHICommandBuffer* getCommandBuffer(uint32_t windowindex) = 0;
+		//virtual RHICommandBuffer* getCommandBuffer(uint32_t windowindex) = 0;
 		virtual void recreateSwapchain() = 0;
 		virtual void destroyFramebuffer(RHIFramebuffer* framebuffer) = 0;
 		virtual bool AllocateDescriptorSets(const RHIDescriptorSetAllocateInfo* pAllocateInfo, RHIDescriptorSet*& pDescriptorSets) = 0;
@@ -53,7 +55,7 @@ namespace TourBillon
 		virtual void createTextureImage(void* imgdata, size_t imageSize, int imageWidth, int imageHeight, int texChannels, RHIImage*& image_buffer, RHIDeviceMemory*& buffer_memory) = 0;
 		virtual void createTextureSampler(const RHICreateTextureSamplerInfo& createinfo, RHISampler*& sampler) = 0;
 
-		virtual void updateBuffer(void* data, uint32_t windowindex, RHIBuffer* buffer, RHIDeviceSize offset, RHIDeviceSize size) = 0;
+		//virtual void updateBuffer(void* data, uint32_t windowindex, RHIBuffer* buffer, RHIDeviceSize offset, RHIDeviceSize size) = 0;
 
 		virtual void createVertexBuffer(void* data, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory) = 0;
 		virtual void createIndexBuffer(void* data, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory) = 0;
@@ -70,17 +72,17 @@ namespace TourBillon
 		virtual void DrawMesh(RHIDrawInfo& draw_info, RHIDrawMeshInfo& draw_mesh_info) = 0;
 		virtual void DrawDebug() = 0;
 	public:
-		const TBAlignedArray<RHIImageView*> getSwapChainImageViews(uint32_t index) { return m_swapChainImageViews[index]; }
-		virtual FORCE_INLINE int getCurrentFrameIndex() = 0;
-		virtual FORCE_INLINE int getMaxFrameIndex() = 0;
-		FORCE_INLINE uint32_t getCurrentSwapchainImageIndex(uint32_t index) { return m_current_swapchain_image_index[index]; }
-		FORCE_INLINE uint32_t getWindowNum(uint32_t index) { return m_windowSize; }
+		//const TBAlignedArray<RHIImageView*> getSwapChainImageViews(uint32_t index) { return m_swapChainImageViews[index]; }
+		//virtual FORCE_INLINE int getCurrentFrameIndex() = 0;
+		virtual FORCE_INLINE uint8_t getStaticMaxFramesInFlight() = 0;
+		//FORCE_INLINE uint32_t getCurrentSwapchainImageIndex(uint32_t index) { return m_current_swapchain_image_index[index]; }
+		//FORCE_INLINE uint32_t getWindowNum(uint32_t index) { return m_windowSize; }
 
 		CEvent* drawEvents;
-		uint32_t m_windowSize = 0;//总窗口个数
+		//uint32_t m_windowSize = 0;//总窗口个数,删除
 	protected:
-		TBVector<TBAlignedArray<RHIImageView*>> m_swapChainImageViews;//第一个index是窗口，第二个是交换链
-		TBVector<uint32_t> m_current_swapchain_image_index;
+		//TBVector<TBAlignedArray<RHIImageView*>> m_swapChainImageViews;//第一个index是窗口，第二个是交换链
+		//TBVector<uint32_t> m_current_swapchain_image_index;
 
 	};
 	inline RHI::~RHI() = default;
@@ -88,7 +90,9 @@ namespace TourBillon
 	class RHI_Factory :public Singleton<RHI_Factory>
 	{
 	public:
-		static std::shared_ptr<RHI> createRHI(const RHI_TYPE& type);
+		static std::shared_ptr<RHI> getRHI(const RHI_TYPE& type);
 		static std::shared_ptr<RHIWindow> createRHIWindow(const RHI_TYPE& type);
+	private:
+		static std::shared_ptr<RHI> m_RHIinstance; // 全局唯一实例
 	};
 }

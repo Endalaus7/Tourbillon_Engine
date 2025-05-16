@@ -165,26 +165,6 @@ void TourBillon::GeneralPass::setup_Pipeline()
 	m_render_pipelines[0] = rhi_create_pipeline;
 }
 
-void TourBillon::GeneralPass::setup_FrameBuffer()
-{
-	RHIFramebufferCreateInfo rhi_framebuffer_init_info;
-	uint32_t windowsize = m_rhi->m_windowSize;
-	m_framebuffer.framebuffers.resize(windowsize);
-	for (int iwin = 0; iwin < windowsize; iwin++)
-	{
-		auto swapimageviews = m_rhi->getSwapChainImageViews(iwin);
-		m_framebuffer.framebuffers[iwin].apply(swapimageviews.size());
-		for (int i = 0; i < swapimageviews.size(); i++)
-		{
-			rhi_framebuffer_init_info.renderpass = m_framebuffer.render_pass;
-			rhi_framebuffer_init_info.windowIndex = iwin;
-			rhi_framebuffer_init_info.imageviews.apply(1);
-			rhi_framebuffer_init_info.imageviews[0] = swapimageviews[i];
-			m_rhi->createFrameBuffer(&rhi_framebuffer_init_info, m_framebuffer.framebuffers[iwin][i]);
-		}
-	}
-}
-
 void TourBillon::GeneralPass::destroyFramebuffer()
 {
 	for(auto& windowframes:m_framebuffer.framebuffers)
@@ -310,7 +290,7 @@ void TourBillon::GeneralPass::setupDescriptorSet()
 	setlayout_create_info.bindingCount = 2;
 	setlayout_create_info.pBindings = mesh_uboLayoutBinding;
 
-	m_descriptor.resize(m_rhi->getMaxFrameIndex());
+	m_descriptor.resize(m_rhi->getStaticMaxFramesInFlight());
 	//m_descriptor.resize();
 
 	for (int i = 0; i < m_descriptor.size(); i++)

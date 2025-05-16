@@ -6,12 +6,6 @@
 #include <queue>
 #include "rhi_struct.h"
 
-//暂时没有用，内存资源管理即将移动到ecs中，提供给更多system使用。
-//届时RHIResource可以作为内存资源管理在rhi层的实现
-
-//RHIResource是抽象了gpu侧的资源
-
-
 namespace TourBillon
 {
 
@@ -29,6 +23,7 @@ namespace TourBillon
 
 	};
 
+	//暂时未使用资源管理
 	class RHIResourceManager :public Singleton<RHIResourceManager>
 	{
 	public:

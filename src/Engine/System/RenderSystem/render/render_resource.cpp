@@ -3,20 +3,20 @@
 
 #include "components/MaterialComponent.h"
 
-void TourBillon::RenderSource::init(RenderSystem* render_system)
+void TourBillon::RenderSourceManager::init(RenderSystem* render_system)
 {
 	m_render_system = render_system;
-	ECSManager::Instance()->AddListener(Events::LOAD_IMAGE_FINISHED, METHOD_LISTENER(RenderSource::loadTexture));
-	ECSManager::Instance()->AddListener(Events::RELEASE_IMAGE, METHOD_LISTENER(RenderSource::releaseTexture));
+	ECSManager::Instance()->AddListener(Events::LOAD_IMAGE_FINISHED, METHOD_LISTENER(RenderSourceManager::loadTexture));
+	ECSManager::Instance()->AddListener(Events::RELEASE_IMAGE, METHOD_LISTENER(RenderSourceManager::releaseTexture));
 }
 
-void TourBillon::RenderSource::loadTexture(const CEvent& event)
+void TourBillon::RenderSourceManager::loadTexture(const CEvent& event)
 {
 	TexturePtr* texturePtr = (TexturePtr*)event.event_data;
 	TextureData* textureData = dynamic_cast<TextureData*>(texturePtr->getData());
 	if (!textureData)return;
 	size_t imageSize = textureData->width * textureData->height * 4;
-	m_render_system->m_rhi->createTextureImage(textureData, imageSize, textureData->width, textureData->height, textureData->texChannels, textureData->image_buffer, textureData->buffer_memory);
+	GET_VULKAN_RHI()->createTextureImage(textureData, imageSize, textureData->width, textureData->height, textureData->texChannels, textureData->image_buffer, textureData->buffer_memory);
 
 	RHICreateTextureSamplerInfo sampler_create_info;
 	sampler_create_info.addressmode = RHI_SAMPLER_ADDRESS_REPEAT;
@@ -28,7 +28,7 @@ void TourBillon::RenderSource::loadTexture(const CEvent& event)
 
 }
 
-void TourBillon::RenderSource::releaseTexture(const CEvent& event)
+void TourBillon::RenderSourceManager::releaseTexture(const CEvent& event)
 {
 	TexturePtr* texturePtr = (TexturePtr*)event.event_data;
 	TextureData* textureData = dynamic_cast<TextureData*>(texturePtr->getData());

@@ -219,12 +219,12 @@ void TourBillon::MainCameraPass::cacheUniformDynamicObject()
 	}
 }
 
-void TourBillon::MainCameraPass::setMainCamera(uint32_t windowindex, Entity camera)
-{
-	if (windowindex >= m_camera.size())
-		m_camera.resize(windowindex + 1);
-	m_camera[windowindex] = camera;
-}
+//void TourBillon::MainCameraPass::setMainCamera(uint32_t windowindex, Entity camera)
+//{
+//	if (windowindex >= m_camera.size())
+//		m_camera.resize(windowindex + 1);
+//	m_camera[windowindex] = camera;
+//}
 
 void TourBillon::MainCameraPass::updateUboData()
 {
@@ -238,7 +238,7 @@ void TourBillon::MainCameraPass::updateUboData()
 
 void TourBillon::MainCameraPass::updateUniformUboData(uint32_t windowindex)
 {
-	Entity entity = m_camera[windowindex];
+	//Entity entity = m_camera[windowindex];
 	Camera3D& camera = ECSManager::Instance()->GetComponent<Camera3D>(m_camera[windowindex]);
 	Transfrom& trans = ECSManager::Instance()->GetComponent<Transfrom>(m_camera[windowindex]);
 	TBMath::Mat44 vmatrix = camera.GetProjMatrix();
@@ -310,7 +310,7 @@ void TourBillon::MainCameraPass::setupDescriptorSet()
 	setlayout_create_info.bindingCount = 2;
 	setlayout_create_info.pBindings = mesh_uboLayoutBinding;
 
-	m_descriptor.resize(m_rhi->getMaxFrameIndex());
+	m_descriptor.resize(m_rhi->getStaticMaxFramesInFlight());
 	//m_descriptor.resize();
 
 	for (int i = 0; i < m_descriptor.size(); i++)

@@ -6,40 +6,49 @@
 #include "components/KeysComponent.h"
 #include "components/WindowComponent.h"
 
-//rhiwindow上需要套一层renderwindow，用于分配camera、scene等上下文资源
-
+//rhiwindow需要指定renderPort，作为一个视图，用于分配camera、scene等上下文资源
+//renderport
 namespace TourBillon
 {
 	class RHIWindow;
-	struct WindowCreateInfo {
-		uint32_t         index{ 0 };
+
+	
+
+	struct RHIWindowInfo//窗口
+	{
+		//uint32_t         index{ 0 };
 		uint32_t         width{ 1280 };
 		uint32_t         height{ 720 };
 		const char* title{ "RenderWindow" };
 		bool        is_fullscreen{ false };
-		std::shared_ptr<RHIWindow> sharedwindow{ nullptr };
+
+		Entity window_entity;
+		
 	};
+	//rhi层的window
 	class RHIWindow
 	{
 	public:
 		~RHIWindow();
-		virtual void initialize(WindowCreateInfo& initialize_info);
-		virtual const WindowCreateInfo& getWindowInfo() = 0;
+		virtual void initialize(RHIWindowInfo& initialize_info);
+		virtual const RHIWindowInfo& getWindowInfo() = 0;
 		virtual void pollEvents() = 0;
 		virtual bool shouldClose() = 0;
+		virtual void update(float dt) = 0;
 		
-		void setCamera(Entity camera_entity);
+		//void setCamera(Entity camera_entity);
 
 		FORCE_INLINE uint32_t getwidth() { return m_width; }
-		FORCE_INLINE uint32_t index() { return m_index; }
+		//FORCE_INLINE uint32_t index() { return m_index; }
 		FORCE_INLINE uint32_t getheight() { return m_height; }
 
-		WindowCreateInfo m_windowInfo;
+		RHIWindowInfo m_windowInfo;
 	protected:
-		static Entity m_window_entity;
 
-		uint32_t m_index = 0;
-		uint32_t m_width = 0;
+		Entity m_window_entity;
+
+		//uint32_t m_index = 0;
+		uint32_t m_width = 0;//像素
 		uint32_t m_height = 0;
 	};
 

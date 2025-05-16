@@ -20,31 +20,29 @@ namespace TourBillon
 		template<typename T>
 		std::shared_ptr<T> RegisterSystem()
 		{
-			const char* typeName = typeid(T).name();
+			std::string typeName = typeid(T).name();//std::type_index(typeid(T));
+
 			if (!std::is_base_of<System, T>::value)
 			{
-				LOG_WARNING(std::string(typeName) + " is Not system class");
+				LOG_WARNING(typeName + " is Not system class");
 				return nullptr;
 			}
 
-			std::type_index typeIndex = std::type_index(typeid(T));
 
-			
-
-			auto find_sys_itr = m_systems.find(typeIndex);
+			auto find_sys_itr = m_systems.find(typeName);
 			if (find_sys_itr != m_systems.end())
-				return std::static_pointer_cast<T>(m_systems[typeIndex]);
+				return std::static_pointer_cast<T>(m_systems[typeName]);
 
 			std::shared_ptr<T> newSystem = std::make_shared<T>();
-			m_systems[typeIndex] = newSystem;
+			m_systems[typeName] = newSystem;
 			return newSystem;
 		}
 		template<typename T>
 		std::shared_ptr<T> GetSystem()
 		{
-			std::type_index typeIndex = std::type_index(typeid(T));
+			std::string typeName = typeid(T).name();//std::type_index(typeid(T));
 
-			auto find_sys_itr = m_systems.find(typeIndex);
+			auto find_sys_itr = m_systems.find(typeName);
 			if (find_sys_itr != m_systems.end())
 				return *find_sys_itr;
 
@@ -95,10 +93,10 @@ namespace TourBillon
 		}
 	protected:
 		// 包含所有的签名
-		std::unordered_map<std::type_index, Signature> mSignatures{};
+		std::unordered_map<std::string, Signature> mSignatures{};
 
 		// 包含所有的System
-		std::unordered_map<std::type_index, std::shared_ptr<System>> m_systems{};
+		std::unordered_map<std::string, std::shared_ptr<System>> m_systems{};
 	};
 }
 

@@ -1,6 +1,8 @@
 #include "vullkan_rhi.h"
 #include "vullkan_window.h"
 #include "vullkan_rhi_resource.h"
+#include "vullkan_port.h"
+
 
 #include <algorithm>
 #include <set>
@@ -22,19 +24,17 @@ TourBillon::VulkanRHI::~VulkanRHI()
 }
 void TourBillon::VulkanRHI::initialize(RHIInitInfo& init_info)
 {
-    m_vkWindows.resize(init_info.window_systems.size());
-    for (int iwindow = 0; iwindow < init_info.window_systems.size(); iwindow++)
-        m_vkWindows[iwindow] = dynamic_cast<VulkanWindow*>(init_info.window_systems[iwindow].get());
+    //m_vkWindows.resize(init_info.window_systems.size());
+    //for (int iwindow = 0; iwindow < init_info.window_systems.size(); iwindow++)
+    //    m_vkWindows[iwindow] = dynamic_cast<VulkanWindow*>(init_info.window_systems[iwindow].get());//转移到上一层，在windows内初始化
 
-    multiWindowResize(m_vkWindows.size());
+    //multiWindowResize(m_vkWindows.size());//删除
 
 	//WindowCreateInfo windowInfo = init_info.window_system->getWindowInfo();
     //m_vkWindow = std::make_shared<VulkanWindow>();
     createInstance();
 
     initializeDebugMessenger();//not ready
-
-    createWindowSurface();
 
     initializePhysicalDevice();
 
@@ -44,22 +44,13 @@ void TourBillon::VulkanRHI::initialize(RHIInitInfo& init_info)
 
     createSyncPrimitives();//not ready
 
-    
-    for (int iwindow = 0; iwindow < m_vkWindows.size(); iwindow++)
-    {
-        createSwapchain(iwindow);
-        createSwapchainImageViews(iwindow);
-    }
-
     createCommandPool();
-
-    createCommandBuffers();
 
     createSemaphore();
 
     createAssetAllocator();//not ready
 }
-
+#if 0
 void TourBillon::VulkanRHI::multiWindowResize(uint32_t windowsize)
 {
     m_windowSize = windowsize;
@@ -75,28 +66,7 @@ void TourBillon::VulkanRHI::multiWindowResize(uint32_t windowsize)
     m_commandBuffers.resize(windowsize);
     m_commandPools.resize(windowsize);
 }
-
-void TourBillon::VulkanRHI::recreateSwapchain()
-{
-    uint32_t index = 0;
-    for(auto window: m_vkWindows)
-    {
-        bool needrecreate = window->updateWindow();
-
-        if (needrecreate)
-        {
-            vkDeviceWaitIdle(m_device);
-
-            //vkDestroyImageView();
-            clearSwapchain(index);
-
-            createSwapchain(index);
-            createSwapchainImageViews(index);
-            createFrameBufferImageAndView(index);
-        }
-        index++;
-    }
-}
+#endif
 
 void TourBillon::VulkanRHI::transitionImageLayout(VkCommandBuffer commandBuffer, VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout)
 {
@@ -148,7 +118,7 @@ void TourBillon::VulkanRHI::transitionImageLayout(VkCommandBuffer commandBuffer,
 
 bool TourBillon::VulkanRHI::prepareDraw(float dt, RHIDrawInfo& drawinfo)
 {
-    VkResult res_wait_for_fences = vkWaitForFences(m_device, 1, &m_inFlightFence[drawinfo.windowIndex][m_current_frame_index], VK_FALSE, UINT64_MAX);
+    VkResult res_wait_for_fences = vkWaitForFences(m_device, 1, &m_inFlightFence[m_current_frame_index], VK_FALSE, UINT64_MAX);
     if (res_wait_for_fences != VK_SUCCESS)
     {
         LOG_ERROR("vkWaitForFences failed");
@@ -375,7 +345,15 @@ void TourBillon::VulkanRHI::createTextureImage(void* imgdata, size_t imageSize, 
     memcpy(data, imgdata, static_cast<size_t>(imageSize));
     vkUnmapMemory(m_device, stagingBufferMemory);
 
-    createImage(imageWidth, imageHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vk_textureImage->image, vk_textureImageMemory->devicememory);
+    CreateImageInfo createinfo;
+    createinfo.width = imageWidth;
+    createinfo.height = imageHeight;
+    createinfo.format = VK_FORMAT_R8G8B8A8_SRGB;
+    createinfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    createinfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    createinfo.properties = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    //createImage(imageWidth, imageHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vk_textureImage->image, vk_textureImageMemory->devicememory);
+    createImage(createinfo, vk_textureImage->image, vk_textureImageMemory->devicememory);
 
     VulkanCommandBuffer* vk_commandBuffer = (VulkanCommandBuffer*)beginSingleTimeCommands(0);
     transitionImageLayout(vk_commandBuffer->commandbuffer, vk_textureImage->image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
@@ -425,11 +403,6 @@ void TourBillon::VulkanRHI::waitFrameTime(float wait_deltaTime)
 {
     if(wait_deltaTime)
     glfwWaitEventsTimeout(wait_deltaTime);
-}
-
-TourBillon::RHICommandBuffer* TourBillon::VulkanRHI::getCommandBuffer(uint32_t windowindex)
-{
-    return &m_commandBuffers[windowindex][m_current_frame_index];
 }
 
 void TourBillon::VulkanRHI::DrawViewport(RHIDrawInfo& draw_info)
@@ -500,6 +473,15 @@ void TourBillon::VulkanRHI::DrawDebug()
     //vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 }
 
+bool TourBillon::VulkanRHI::registerSurface(VkSurfaceKHR surface)
+{
+    //注册新surface时，还需要检查设备是否可用
+    //目前方案：不可用的新surface直接返回false，报错
+    m_surfaces.push_back(surface);
+
+    return true;
+}
+
 void TourBillon::VulkanRHI::createBuffer(RHIDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkBuffer& buffer, VkDeviceMemory& bufferMemory)
 {
     VkBufferCreateInfo bufferInfo{};
@@ -529,39 +511,37 @@ void TourBillon::VulkanRHI::createBuffer(RHIDeviceSize size, VkBufferUsageFlags 
 
 void TourBillon::VulkanRHI::copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size)
 {
-    for (int iwindow = 0; iwindow < m_windowSize; iwindow++)
-    {
-        VkCommandBufferAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandPool = m_commandPools[iwindow];
-        allocInfo.commandBufferCount = 1;
+    VkCommandBufferAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = m_commandPool;
+    allocInfo.commandBufferCount = 1;
 
-        VkCommandBuffer commandBuffer;
-        vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
+    VkCommandBuffer commandBuffer;
+    vkAllocateCommandBuffers(m_device, &allocInfo, &commandBuffer);
 
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-        vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-        VkBufferCopy copyRegion{};
-        copyRegion.size = size;
-        vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
+    VkBufferCopy copyRegion{};
+    copyRegion.size = size;
+    vkCmdCopyBuffer(commandBuffer, srcBuffer, dstBuffer, 1, &copyRegion);
 
-        vkEndCommandBuffer(commandBuffer);
+    vkEndCommandBuffer(commandBuffer);
 
-        VkSubmitInfo submitInfo{};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commandBuffer;
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
 
-        vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-        vkQueueWaitIdle(m_graphicsQueue);
+    vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle(m_graphicsQueue);
 
-        vkFreeCommandBuffers(m_device, m_commandPools[iwindow], 1, &commandBuffer);
-    }
+    vkFreeCommandBuffers(m_device, m_commandPool, 1, &commandBuffer);
+
 
 }
 
@@ -618,22 +598,9 @@ void TourBillon::VulkanRHI::createInstance()
     }
 }
 
+
 void TourBillon::VulkanRHI::initializeDebugMessenger()
 {
-}
-
-void TourBillon::VulkanRHI::createWindowSurface()
-{
-    m_surfaces.resize(m_vkWindows.size(), nullptr);
-    int index = 0;
-    for(auto window:m_vkWindows)
-    {
-        if (glfwCreateWindowSurface(m_instance, window->getWindow(), nullptr, &m_surfaces[index]) != VK_SUCCESS)
-        {
-            LOG_WARNING("failed to create window surface!");
-        }
-        index++;
-    }
 }
 
 void TourBillon::VulkanRHI::initializePhysicalDevice()
@@ -676,17 +643,22 @@ void TourBillon::VulkanRHI::createLogicalDevice()
         queueCreateInfos.push_back(queueCreateInfo);
     }
 
-    VkPhysicalDeviceFeatures deviceFeatures{};
-    deviceFeatures.robustBufferAccess = VK_TRUE; // 启用 robustBufferAccess.robustBufferAccess = VK_TRUE; // 启用图像的安全访问
+    //VkPhysicalDeviceFeatures deviceFeatures{};
+    //deviceFeatures.robustBufferAccess = VK_TRUE; // 启用 robustBufferAccess.robustBufferAccess = VK_TRUE; // 启用图像的安全访问
     //检查
     VkPhysicalDeviceRobustness2FeaturesEXT robustnessFeatures = {};
     robustnessFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ROBUSTNESS_2_FEATURES_EXT;
     robustnessFeatures.robustBufferAccess2 = VK_TRUE; // 启用缓冲区的安全访问
     robustnessFeatures.robustImageAccess2 = VK_TRUE; // 启用图像的安全访问
 
+    //VkPhysicalDeviceDynamicRenderingFeaturesKHR dynamicRenderingFeatures{};
+    //dynamicRenderingFeatures.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES_KHR;
+    //dynamicRenderingFeatures.pNext = &robustnessFeatures;
+    //dynamicRenderingFeatures.dynamicRendering = VK_TRUE;  // 启用动态渲染
+
     VkPhysicalDeviceFeatures2 features2 = {};
     features2.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2;
-    features2.pNext = &robustnessFeatures;
+    features2.pNext = &robustnessFeatures;// &dynamicRenderingFeatures;
     features2.features.robustBufferAccess = VK_TRUE;
 
     VkDeviceCreateInfo createInfo{};
@@ -718,11 +690,9 @@ void TourBillon::VulkanRHI::createCommandPool()
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily.value();
-    for (int iwindow = 0; iwindow < m_windowSize; iwindow++)
-    {
-        if (vkCreateCommandPool(m_device, &poolInfo, nullptr, &m_commandPools[iwindow]) != VK_SUCCESS) {
-            LOG_WARNING("Failed to create command pool!");
-        }
+    
+    if (vkCreateCommandPool(m_device, &poolInfo, nullptr, &m_commandPool) != VK_SUCCESS) {
+        LOG_WARNING("Failed to create command pool!");
     }
 }
 
@@ -776,127 +746,6 @@ void TourBillon::VulkanRHI::createSyncPrimitives()
 
 void TourBillon::VulkanRHI::createAssetAllocator()
 {
-}
-
-void TourBillon::VulkanRHI::createSwapchain(uint32_t index)
-{
-    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(m_physicalDevice, index);
-
-    VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-    VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-    VkExtent2D extent = chooseSwapExtent(swapChainSupport.capabilities,index);
-
-    uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
-    if (swapChainSupport.capabilities.maxImageCount > 0 && imageCount > swapChainSupport.capabilities.maxImageCount) {
-        imageCount = swapChainSupport.capabilities.maxImageCount;
-    }
-
-    VkSwapchainCreateInfoKHR createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = m_surfaces[index];
-
-    createInfo.minImageCount = imageCount;
-    createInfo.imageFormat = surfaceFormat.format;
-    createInfo.imageColorSpace = surfaceFormat.colorSpace;
-    createInfo.imageExtent = extent;
-    createInfo.imageArrayLayers = 1;
-    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-    QueueFamilyIndices indices = findQueueFamilies(m_physicalDevice);
-    uint32_t queueFamilyIndices[] = { indices.graphicsFamily.value(), indices.presentFamily.value() };
-
-    if (indices.graphicsFamily != indices.presentFamily) {
-        createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-        createInfo.queueFamilyIndexCount = 2;
-        createInfo.pQueueFamilyIndices = queueFamilyIndices;
-    }
-    else {
-        createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    }
-
-    createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
-    createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-    createInfo.presentMode = presentMode;
-    createInfo.clipped = VK_TRUE;
-
-    createInfo.oldSwapchain = VK_NULL_HANDLE;
-
-    if (vkCreateSwapchainKHR(m_device, &createInfo, nullptr, &m_swapChain[index]) != VK_SUCCESS) {
-        LOG_ERROR("failed to create swap chain!");
-    }
-
-    vkGetSwapchainImagesKHR(m_device, m_swapChain[index], &imageCount, nullptr);
-    m_swapChainImages[index].apply(imageCount);
-    vkGetSwapchainImagesKHR(m_device, m_swapChain[index], &imageCount, m_swapChainImages[index].data());
-
-    m_swapChainImageFormat = surfaceFormat.format;
-    m_wapChainExtent[index] = extent;
-}
-
-bool TourBillon::VulkanRHI::createRenderPass(const RHIRenderPassCreateInfo* pCreateInfo, RHIRenderPass*& pRenderPass)
-{
-    // attachment convert
-    TBAlignedArray<VkAttachmentDescription> attachments(pCreateInfo->attachments.size());
-    TBAlignedArray<VkAttachmentReference> attachmentRefs(pCreateInfo->attachments.size());
-    for (int i = 0; i < pCreateInfo->attachments.size(); i++)
-    {
-        RHIRenderPassCreateInfo::AttachmentEntry color_entry = pCreateInfo->attachments[i];
-
-        VkAttachmentDescription itAttachment{};
-        itAttachment.flags = i;
-        itAttachment.format = m_swapChainImageFormat;// color_entry.RenderTarget->getFormat();
-        itAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        itAttachment.loadOp = VulkanRHIResource::RHIToVkAttachmentLoadOp(color_entry.LoadAction);
-        itAttachment.storeOp = VulkanRHIResource::RHIToVkAttachmentStoreOp(color_entry.StoreAction);
-        itAttachment.stencilLoadOp = VulkanRHIResource::RHIToVkAttachmentLoadOp(color_entry.stencilLoadAction);
-        itAttachment.stencilStoreOp = VulkanRHIResource::RHIToVkAttachmentStoreOp(color_entry.stencilStoreAction);
-        itAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        itAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-
-        attachments[i] = itAttachment;
-
-        VkAttachmentReference itAttachmentRef{};
-        itAttachmentRef.attachment = i;
-        itAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;//
-
-        attachmentRefs[i] = itAttachmentRef;
-    }
-    TBAlignedArray<VkSubpassDescription> subpasses(pCreateInfo->subpasses.size());
-    TBAlignedArray<void*> sub_attachments_ref_copy(pCreateInfo->subpasses.size());
-    for (int i = 0; i < pCreateInfo->subpasses.size(); i++)
-    {
-        RHIRenderPassCreateInfo::SubpassEntry subpass_entry = pCreateInfo->subpasses[i];
-        
-        for (int index = 0; index < subpass_entry.colorAttachment.size(); index++)
-        {
-            sub_attachments_ref_copy[index] = (void*)&attachmentRefs[subpass_entry.colorAttachment[index]];
-        }
-
-        VkSubpassDescription itsubpass{};
-        itsubpass.pipelineBindPoint = VulkanRHIResource::RHIToVkPipelineBindPoint(subpass_entry.bindPipelineState);// VK_PIPELINE_BIND_POINT_GRAPHICS;
-        itsubpass.colorAttachmentCount = sub_attachments_ref_copy.size();
-        itsubpass.pColorAttachments = (VkAttachmentReference*)*sub_attachments_ref_copy.data();//内存泄露
-
-        subpasses[i] = itsubpass;
-
-    }
-
-    VkRenderPassCreateInfo renderPassInfo{};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-    renderPassInfo.attachmentCount = attachments.size();
-    renderPassInfo.pAttachments = attachments.data();
-    renderPassInfo.subpassCount = subpasses.size();
-    renderPassInfo.pSubpasses = subpasses.data();
-
-    VulkanRenderPass* vk_render_pass = new VulkanRenderPass;//dynamic_cast<VulkanRenderPass*>(pRenderPass);
-
-    if (vkCreateRenderPass(m_device, &renderPassInfo, nullptr, &vk_render_pass->renderpass) != VK_SUCCESS) {
-        LOG_WARNING("failed to create render pass!");
-        return false;
-    }
-    pRenderPass = vk_render_pass;
-
-    return true;
 }
 
 bool TourBillon::VulkanRHI::createDescriptorSetLayout(const RHIDescriptorSetLayoutCreateInfo* pCreateInfo, RHIDescriptorSetLayout*& pSetLayout)
@@ -1003,258 +852,41 @@ bool TourBillon::VulkanRHI::updateDescriptorSets(RHIUpdatesDescriptorSetsInfo& w
     return true;
 }
 
-void TourBillon::VulkanRHI::createSwapchainImageViews(uint32_t index)
+void TourBillon::VulkanRHI::createImage(const CreateImageInfo& createinfo, VkImage& image, VkDeviceMemory& imageMemory)
 {
-    m_swapChainImageViews[index].apply(m_swapChainImages[index].size());
+    VkImageCreateInfo imageInfo{};
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.imageType = VK_IMAGE_TYPE_2D;
+    imageInfo.extent.width = createinfo.width;
+    imageInfo.extent.height = createinfo.height;
+    imageInfo.extent.depth = 1;
+    imageInfo.mipLevels = 1;
+    imageInfo.arrayLayers = 1;
+    imageInfo.format = createinfo.format;
+    imageInfo.tiling = createinfo.tiling;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageInfo.usage = createinfo.usage;
+    imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageInfo.flags = VK_IMAGE_CREATE_2D_ARRAY_COMPATIBLE_BIT;
 
-    for (size_t i = 0; i < m_swapChainImages[index].size(); i++) {
-        VkImageViewCreateInfo createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        createInfo.image = m_swapChainImages[index][i];
-        createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        createInfo.format = m_swapChainImageFormat;
-        createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-        createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        createInfo.subresourceRange.baseMipLevel = 0;
-        createInfo.subresourceRange.levelCount = 1;
-        createInfo.subresourceRange.baseArrayLayer = 0;
-        createInfo.subresourceRange.layerCount = 1;
-
-        VulkanImageView* swapChainImageViews = new VulkanImageView;
-        
-
-        if (vkCreateImageView(m_device, &createInfo, nullptr, &swapChainImageViews->imageview) != VK_SUCCESS) {
-            LOG_WARNING("failed to create image views!");
-        }
-        m_swapChainImageViews[index][i] = swapChainImageViews;
-    }
-    return;
-}
-
-bool TourBillon::VulkanRHI::createGraphicsPipeline(const RHIPipelineCreateInfo* pCreateInfo, RHIPipeline*& pPipeline)
-{
-    VulkanPipeline* vk_pipeline = new VulkanPipeline;// dynamic_cast<VulkanPipeline*>(pPipeline);
-
-    TBAlignedArray<VkPipelineShaderStageCreateInfo> shaderStages;
-    shaderStages.apply(pCreateInfo->shaders.size());
-    std::vector<VkShaderModule> loading_shaderModules;
-    for (int i = 0; i < pCreateInfo->shaders.size(); i++)
-    {
-        RHIPipelineCreateInfo::ShaderEntry shader_entry = pCreateInfo->shaders[i];
-        auto shaderCode = readFile(shader_entry.shaderpath);
-        VkShaderModule shaderModule = createShaderModule(shaderCode);
-        loading_shaderModules.push_back(shaderModule);
-
-        VkPipelineShaderStageCreateInfo shaderStageInfo{};
-        shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        shaderStageInfo.stage = VulkanRHIResource::RHIToVkShaderStageFlagBits(shader_entry.shadertype);
-        shaderStageInfo.module = loading_shaderModules[i];
-        shaderStageInfo.pName = "main";
-
-        shaderStages[i] = shaderStageInfo;
+    if (vkCreateImage(m_device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create image!");
     }
 
-    //绑定描述符
-    VkVertexInputBindingDescription bindingDescription = getVertexBindingDescription();
-    std::vector<VkVertexInputAttributeDescription> attributeDescriptions = getVertexAttributeDescriptions();
+    VkMemoryRequirements memRequirements;
+    vkGetImageMemoryRequirements(m_device, image, &memRequirements);
 
-    //定义顶点输入的格式和绑定方式
-    VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = 1;
-    vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
-    vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-    vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
 
-
-    //顶点组装的方式
-    VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
-    inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-    inputAssembly.primitiveRestartEnable = VK_FALSE;
-
-    //视口和剪裁区域
-    VkPipelineViewportStateCreateInfo viewportState{};
-    viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    viewportState.viewportCount = 1;
-    viewportState.scissorCount = 1;
-
-    //深度测试
-    VkPipelineDepthStencilStateCreateInfo depth_info = {};
-    depth_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-    depth_info.depthCompareOp = VK_COMPARE_OP_ALWAYS;
-
-    //光栅化状态
-    VkPipelineRasterizationStateCreateInfo rasterizer{};
-    rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-    rasterizer.depthClampEnable = VK_FALSE;
-    rasterizer.rasterizerDiscardEnable = VK_FALSE;
-    rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
-    rasterizer.lineWidth = 1.0f;
-    rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-    rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
-    rasterizer.depthBiasEnable = VK_FALSE;
-
-    //多重采样的配置
-    VkPipelineMultisampleStateCreateInfo multisampling{};
-    multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-    multisampling.sampleShadingEnable = VK_FALSE;
-    multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-
-    VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-    colorBlendAttachment.blendEnable = VK_FALSE;
-
-    //颜色混合的配置
-    VkPipelineColorBlendStateCreateInfo colorBlending{};
-    colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-    colorBlending.logicOpEnable = VK_FALSE;
-    colorBlending.logicOp = VK_LOGIC_OP_COPY;
-    colorBlending.attachmentCount = 1;
-    colorBlending.pAttachments = &colorBlendAttachment;
-    colorBlending.blendConstants[0] = 0.0f;
-    colorBlending.blendConstants[1] = 0.0f;
-    colorBlending.blendConstants[2] = 0.0f;
-    colorBlending.blendConstants[3] = 0.0f;
-
-    //在管线外动态设置的状态
-    std::vector<VkDynamicState> dynamicStates = {
-        VK_DYNAMIC_STATE_VIEWPORT,
-        VK_DYNAMIC_STATE_SCISSOR
-    };
-    VkPipelineDynamicStateCreateInfo dynamicState{};
-    dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-    dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
-    dynamicState.pDynamicStates = dynamicStates.data();
-
-    VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.setLayoutCount = pCreateInfo->descriptor_layouts.size();
-    //pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
-    TBVector<VkDescriptorSetLayout> vk_layouts(pCreateInfo->descriptor_layouts.size());
-    for (int i = 0; i < pCreateInfo->descriptor_layouts.size(); i++)
-    {
-        vk_layouts[i] = dynamic_cast<VulkanDescriptorSetLayout*>(pCreateInfo->descriptor_layouts[i])->layout;
-    }
-    pipelineLayoutInfo.pSetLayouts = vk_layouts.data();
-
-    if (vkCreatePipelineLayout(m_device, &pipelineLayoutInfo, nullptr, &vk_pipeline->pipelinelayout) != VK_SUCCESS) {
-        LOG_WARNING("failed to create pipeline layout!");
+    if (vkAllocateMemory(m_device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+        LOG_ERROR("failed to allocate image memory!");
     }
 
-    VulkanRenderPass* vk_render_pass = dynamic_cast<VulkanRenderPass*>(pCreateInfo->renderpass);
-
-    //VkPipelineRobustnessBufferBehaviorCreateInfoEXT robustnessBufferBehavior = {};
-    //robustnessBufferBehavior.sType = VK_STRUCTURE_TYPE_PIPELINE_ROBUSTNESS_BUFFER_BEHAVIOR_CREATE_INFO_EXT;
-    //robustnessBufferBehavior.bufferAccessBehavior = VK_PIPELINE_ROBUSTNESS_BUFFER_ACCESS_ROBUST_BUFFER_ACCESS_EXT;
-
-
-    VkGraphicsPipelineCreateInfo pipelineInfo{};
-    pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineInfo.stageCount = pCreateInfo->shaders.size();
-    pipelineInfo.pStages = shaderStages.data();
-    pipelineInfo.pVertexInputState = &vertexInputInfo;
-    pipelineInfo.pInputAssemblyState = &inputAssembly;
-    pipelineInfo.pViewportState = &viewportState;
-    pipelineInfo.pRasterizationState = &rasterizer;
-    pipelineInfo.pMultisampleState = &multisampling;
-    pipelineInfo.pColorBlendState = &colorBlending;
-    pipelineInfo.pDepthStencilState = &depth_info;
-    pipelineInfo.pDynamicState = &dynamicState;
-    pipelineInfo.layout = vk_pipeline->pipelinelayout;
-    pipelineInfo.renderPass = vk_render_pass->renderpass;
-    pipelineInfo.subpass = pCreateInfo->subpassIndex;
-    pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-
-    
-    if (vkCreateGraphicsPipelines(m_device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &vk_pipeline->pipeline) != VK_SUCCESS) {
-        LOG_ERROR("failed to create graphics pipeline!");
-        return false;
-    }
-    pPipeline = vk_pipeline;
-    for (int i = 0; i < loading_shaderModules.size(); i++)
-    {
-        vkDestroyShaderModule(m_device, loading_shaderModules[i], nullptr);
-    }
-    VulkanPipeline* vpipeline = dynamic_cast<VulkanPipeline*>(pPipeline);
-    return true;
-}
-
-bool TourBillon::VulkanRHI::createFrameBuffer(const RHIFramebufferCreateInfo* pCreateInfo, RHIFramebuffer*& pframeBuffer)
-{
-    VulkanRenderPass* vk_render_pass = dynamic_cast<VulkanRenderPass*>(pCreateInfo->renderpass);
-    VulkanFramebuffer* vk_frame_buffer = new VulkanFramebuffer;
-
-    TBAlignedArray<VkImageView> attachments(pCreateInfo->imageviews.size());
-    for (int i = 0; i < pCreateInfo->imageviews.size(); i++)
-    {
-        VulkanImageView* vk_image_view = dynamic_cast<VulkanImageView*>(pCreateInfo->imageviews[i]);
-        attachments[i] = vk_image_view->imageview;// m_swapChainImageViews[i];
-    }
-
-    VkFramebufferCreateInfo framebufferInfo{};
-    framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-    framebufferInfo.renderPass = vk_render_pass->renderpass;
-    framebufferInfo.attachmentCount = attachments.size();
-    framebufferInfo.pAttachments = attachments.data();
-    framebufferInfo.width = m_wapChainExtent[pCreateInfo->windowIndex].width;
-    framebufferInfo.height = m_wapChainExtent[pCreateInfo->windowIndex].height;
-    framebufferInfo.layers = 1;
-
-    if (vkCreateFramebuffer(m_device, &framebufferInfo, nullptr, &vk_frame_buffer->framebuffer) != VK_SUCCESS) {
-        LOG_WARNING("failed to create framebuffer!");
-    }
-
-    pframeBuffer = vk_frame_buffer;
-
-    return true;
-}
-void TourBillon::VulkanRHI::createFrameBufferImageAndView(uint32_t index)
-{
-    VulkanCommandBuffer* vk_commandBuffer = (VulkanCommandBuffer*)beginSingleTimeCommands(index);
-    for (int frame = 0; frame < s_max_frames_in_flight; frame++)
-        transitionImageLayout(vk_commandBuffer->commandbuffer, m_swapChainImages[index][frame], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
-    endSingleTimeCommands(vk_commandBuffer, index);
-}
-void TourBillon::VulkanRHI::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory)
-{
-    {
-        VkImageCreateInfo imageInfo{};
-        imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-        imageInfo.imageType = VK_IMAGE_TYPE_2D;
-        imageInfo.extent.width = width;
-        imageInfo.extent.height = height;
-        imageInfo.extent.depth = 1;
-        imageInfo.mipLevels = 1;
-        imageInfo.arrayLayers = 1;
-        imageInfo.format = format;
-        imageInfo.tiling = tiling;
-        imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        imageInfo.usage = usage;
-        imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-        imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-        if (vkCreateImage(m_device, &imageInfo, nullptr, &image) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create image!");
-        }
-
-        VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(m_device, image, &memRequirements);
-
-        VkMemoryAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties);
-
-        if (vkAllocateMemory(m_device, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
-            LOG_ERROR("failed to allocate image memory!");
-        }
-
-        vkBindImageMemory(m_device, image, imageMemory, 0);
-    }
+    vkBindImageMemory(m_device, image, imageMemory, 0);
 }
 void TourBillon::VulkanRHI::copyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height)
 {
@@ -1295,28 +927,6 @@ VkImageView TourBillon::VulkanRHI::createImageView(VkImage image, VkFormat forma
 
     return imageView;
 }
-bool TourBillon::VulkanRHI::createSemaphore()
-{
-    VkSemaphoreCreateInfo semaphoreInfo{};
-    semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-    VkFenceCreateInfo fenceInfo{};
-    fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-    fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-    for(int iwindow = 0;iwindow<m_windowSize; iwindow++)
-    {
-        for (int i = 0; i < s_max_frames_in_flight; i++)
-        {
-            if (vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_imageAvailableSemaphore[iwindow][i]) != VK_SUCCESS ||
-                vkCreateSemaphore(m_device, &semaphoreInfo, nullptr, &m_renderFinishedSemaphore[iwindow][i]) != VK_SUCCESS ||
-                vkCreateFence(m_device, &fenceInfo, nullptr, &m_inFlightFence[iwindow][i]) != VK_SUCCESS) {
-                LOG_WARNING("failed to create synchronization objects for a frame!");
-                return false;
-            };
-        }
-    }
-    return true;
-}
 
 VkShaderModule TourBillon::VulkanRHI::createShaderModule(const std::vector<char>& code)
 {
@@ -1332,19 +942,6 @@ VkShaderModule TourBillon::VulkanRHI::createShaderModule(const std::vector<char>
         return VK_NULL_HANDLE;
     }
     return shader_module;
-}
-
-void TourBillon::VulkanRHI::updateBuffer(void* data, uint32_t windowindex, RHIBuffer* buffer, RHIDeviceSize totaloffset, RHIDeviceSize totalsize)
-{
-    VkCommandBuffer commandBuffer = m_commandBuffers[windowindex][m_current_frame_index].commandbuffer;
-    VulkanBuffer* vk_buffer = dynamic_cast<VulkanBuffer*>(buffer);
-    size_t chunkSize = 65536;
-    for (size_t ioffset = 0; ioffset < totalsize - totaloffset; ioffset += chunkSize) {
-        size_t isize = min(chunkSize, totalsize - totaloffset - ioffset);
-        vkCmdUpdateBuffer(commandBuffer, vk_buffer->buffer, ioffset, isize, data);
-    }
-    
-    //vkCmdUpdateBuffer(commandBuffer, vk_buffer->buffer, offset, size, data);
 }
 
 void TourBillon::VulkanRHI::createVertexBuffer(void* srcdata, RHIDeviceSize size, RHIBuffer*& buffer, RHIDeviceMemory*& buffer_memory)
@@ -1484,32 +1081,7 @@ bool TourBillon::VulkanRHI::isDeviceSuitable(VkPhysicalDevice device)
     //vkGetPhysicalDeviceProperties(device, &deviceProperties);
     //return deviceProperties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU;
 }
-
-TourBillon::VulkanRHI::SwapChainSupportDetails TourBillon::VulkanRHI::querySwapChainSupport(VkPhysicalDevice device, uint32_t index)
-{
-    SwapChainSupportDetails details;
-
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, m_surfaces[index], &details.capabilities);
-
-    uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surfaces[index], &formatCount, nullptr);
-
-    if (formatCount != 0) {
-        details.formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surfaces[index], &formatCount, details.formats.data());
-    }
-
-    uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surfaces[index], &presentModeCount, nullptr);
-
-    if (presentModeCount != 0) {
-        details.presentModes.resize(presentModeCount);
-        vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surfaces[index], &presentModeCount, details.presentModes.data());
-    }
-
-    return details;
-}
-
+#if 0
 VkSurfaceFormatKHR TourBillon::VulkanRHI::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats)
 {
     for (const auto& availableFormat : availableFormats) {
@@ -1553,6 +1125,8 @@ VkPresentModeKHR TourBillon::VulkanRHI::chooseSwapPresentMode(const std::vector<
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
+#endif
+
 TourBillon::VulkanRHI::QueueFamilyIndices TourBillon::VulkanRHI::findQueueFamilies(VkPhysicalDevice device)
 {
     QueueFamilyIndices indices;
@@ -1593,7 +1167,6 @@ TourBillon::VulkanRHI::QueueFamilyIndices TourBillon::VulkanRHI::findQueueFamili
 
     return indices;
 }
-
 bool TourBillon::VulkanRHI::checkDeviceExtensionSupport(VkPhysicalDevice device)
 {
     uint32_t extensionCount;
@@ -1649,12 +1222,12 @@ void TourBillon::VulkanRHI::DestroyDebugUtilsMessengerEXT(VkInstance instance, V
     }
 }
 
-TourBillon::RHICommandBuffer* TourBillon::VulkanRHI::beginSingleTimeCommands(uint32_t windowindex)
+TourBillon::RHICommandBuffer* TourBillon::VulkanRHI::beginSingleTimeCommands()
 {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = m_commandPools[windowindex];
+    allocInfo.commandPool = m_commandPool;
     allocInfo.commandBufferCount = 1;
 
     VkCommandBuffer command_buffer;
@@ -1671,7 +1244,7 @@ TourBillon::RHICommandBuffer* TourBillon::VulkanRHI::beginSingleTimeCommands(uin
     return rhi_command_buffer;
 }
 
-void TourBillon::VulkanRHI::endSingleTimeCommands(RHICommandBuffer* command_buffer, uint32_t windowindex)
+void TourBillon::VulkanRHI::endSingleTimeCommands(RHICommandBuffer* command_buffer)
 {
     VkCommandBuffer vk_command_buffer = ((VulkanCommandBuffer*)command_buffer)->commandbuffer;
     vkEndCommandBuffer(vk_command_buffer);
@@ -1684,7 +1257,7 @@ void TourBillon::VulkanRHI::endSingleTimeCommands(RHICommandBuffer* command_buff
     vkQueueSubmit(m_graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle(m_graphicsQueue);
 
-    vkFreeCommandBuffers(m_device, m_commandPools[windowindex], 1, &vk_command_buffer);
+    vkFreeCommandBuffers(m_device, m_commandPool, 1, &vk_command_buffer);
     delete(command_buffer);
 }
 
@@ -1726,21 +1299,11 @@ void TourBillon::VulkanRHI::destroySampler(RHISampler*& sampler)
 
 void TourBillon::VulkanRHI::cleanup()
 {
-    for (int iwindow = 0; iwindow < m_windowSize; iwindow++)
-    {
-        for (size_t i = 0; i < s_max_frames_in_flight; i++) {
-            vkDestroySemaphore(m_device, m_renderFinishedSemaphore[iwindow][i], nullptr);
-            vkDestroySemaphore(m_device, m_imageAvailableSemaphore[iwindow][i], nullptr);
-            vkDestroyFence(m_device, m_inFlightFence[iwindow][i], nullptr);
-        }
-        vkDestroyCommandPool(m_device, m_commandPools[iwindow], nullptr);
-        clearSwapchain(iwindow);
-    }
-
+    vkDestroyCommandPool(m_device, m_commandPool, nullptr);
 
     vkDestroyDescriptorPool(m_device, m_descriptorPool, nullptr);
     
-    vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
+    //vkDestroyPipeline(m_device, m_graphicsPipeline, nullptr);
 	vkDestroyRenderPass(m_device, m_renderPass, nullptr);
     
     vkDestroyDevice(m_device, nullptr);
@@ -1748,23 +1311,9 @@ void TourBillon::VulkanRHI::cleanup()
     if (m_enable_validation_Layers) {
         DestroyDebugUtilsMessengerEXT(m_instance, m_debugMessenger, nullptr);
     }
-    for(auto window: m_vkWindows)
-    glfwDestroyWindow(window->getWindow());
+    //for(auto window: m_vkWindows)
+    //glfwDestroyWindow(window->getWindow());
     glfwTerminate();
-}
-
-void TourBillon::VulkanRHI::clearSwapchain(uint32_t index)
-{
-    for (auto imageview : m_swapChainImageViews[index])
-    {
-        VulkanImageView* vk_imageview = dynamic_cast<VulkanImageView*>(imageview);
-        if (vk_imageview)
-        {
-            vkDestroyImageView(m_device, vk_imageview->imageview, NULL);
-        }
-    }
-    if (m_swapChain[index])
-        vkDestroySwapchainKHR(m_device, m_swapChain[index], NULL); // also swapchain images
 }
 
 void TourBillon::VulkanRHI::destroyFramebuffer(RHIFramebuffer* framebuffer)

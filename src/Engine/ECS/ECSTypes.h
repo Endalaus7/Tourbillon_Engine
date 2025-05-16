@@ -8,11 +8,11 @@ namespace TourBillon {
 	{
 		enum EventType
 		{
-			LOAD_IMAGE,//TextureShared*
-			LOAD_IMAGE_FINISHED,//TextureShared*
-			RELEASE_IMAGE,//TextureShared*
+			LOAD_IMAGE,//TexturePtr*
+			LOAD_IMAGE_FINISHED,//TexturePtr*
+			RELEASE_IMAGE,//TexturePtr*
 
-			LOAD_MODEL,//GeometryShared*
+			LOAD_MODEL,//GeometryPtr*
 			//LOAD_MODEL_FINISHED,
 
 			LOAD_SHADER,//Shader*
@@ -20,6 +20,8 @@ namespace TourBillon {
 
 			KEY_CHANGE,//entity id
 			MOUSE_MOVE,//entity id
+
+			LOAD_YAML,//ReflectPath path
 		};
 	}
 }

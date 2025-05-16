@@ -5,8 +5,10 @@
 #include "Components/KeysComponent.h"
 #include "Components/WindowComponent.h"
 #include "Components/MaterialComponent.h"
+#include "Components/RenderComponent.h"
 
 #include "RenderSystem/render_system.h"
+#include "CustomWindowSystem/CustomWindowSystem.h"
 #include "IOSystem/IOSystem.h"
 #include "rhi/rhi_source.h"
 
@@ -15,31 +17,33 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	ECSManagerInitInfo ecs_manager_init_info;
 	ECSManager::Instance()->initialize(ecs_manager_init_info);
 
-
-	ECSManager::Instance()->RegisterComponent<RenderWindow>();
+	//注册基础组件
+	//ECSManager::Instance()->RegisterComponent<RenderWindow>();
 	ECSManager::Instance()->RegisterComponent<GeometryPtr>();
 	ECSManager::Instance()->RegisterComponent<Camera3D>();
 	ECSManager::Instance()->RegisterComponent<Material>();
 	ECSManager::Instance()->RegisterComponent<Transfrom>();
 	ECSManager::Instance()->RegisterComponent<Buttons>();
 	ECSManager::Instance()->RegisterComponent<Mouse>();
+	ECSManager::Instance()->RegisterComponent<ECSWindow>();
+	ECSManager::Instance()->RegisterComponent<RenderPort>();
 
+	//渲染系统
 	m_renderSystem = ECSManager::Instance()->mSystemManager->RegisterSystem<RenderSystem>();
 	{
 		Signature signature;
 		//signature.set(ECSManager::Instance()->GetComponentType<Renderable>());
 		ECSManager::Instance()->SetSystemSignature<RenderSystem>(signature);
 	}
-
 	RenderSystemInitInfo render_system_init_info;
 	render_system_init_info.rhi_type = VULKAN_RHI;
 	render_system_init_info.frame_rate = 60;
-	render_system_init_info.window_width = engine_init_info.window_width;
-	render_system_init_info.window_height = engine_init_info.window_height;
-	render_system_init_info.window_num = engine_init_info.window_num;
+	//render_system_init_info.window_width = engine_init_info.window_width;
+	//render_system_init_info.window_height = engine_init_info.window_height;
+	//render_system_init_info.window_num = engine_init_info.window_num;
 	m_renderSystem->initialize(&render_system_init_info);
 
-	//最后一个初始化
+	//IO系统
 	auto& io_system = ECSManager::Instance()->mSystemManager->RegisterSystem<IOSystem>();
 	{
 		Signature signature;
@@ -49,28 +53,60 @@ void TourBillon::TBEngine::initialize(EngineInitInfo engine_init_info)
 	IOSystemInitInfo io_system_init_info;
 	io_system->initialize(&io_system_init_info);
 
-	//相机
-	for(int windowindex = 0;windowindex< engine_init_info.window_num;windowindex++)
+	auto& custom_window_system = ECSManager::Instance()->mSystemManager->RegisterSystem<CustomWindowSystem>();
 	{
-		Entity camera_entity = ECSManager::Instance()->CreateEntity();
-
-		Transfrom trans;
-		trans.position = TBMath::Vec3(6,1.5,-1.5);
-		trans.rotation = TBMath::Vec3(20, -50, 0);
-
-		Camera3D camera0;
-		//camera0.pos = TBMath::Vec3(2, 2, -2);
-		//camera0.lookat = TBMath::Vec3(0, 0, 0);
-		//camera0.up = TBMath::Vec3(0, 0, -1);
-		camera0.isOrthographic = false;
-		camera0.fovX = 60;
-		camera0.fovY = ((float)engine_init_info.window_width / (float)engine_init_info.window_width) * camera0.fovX;
-		camera0.nearClip = 0.1f;
-		camera0.farClip = 100.0f;
-		ECSManager::Instance()->AddComponent<Camera3D>(camera_entity, camera0);
-		ECSManager::Instance()->AddComponent<Transfrom>(camera_entity, trans);
-		m_renderSystem->SetMainCamera(windowindex, camera_entity);
+		Signature signature;
+		//signature.set(ECSManager::Instance()->GetComponentType<Renderable>());
+		ECSManager::Instance()->SetSystemSignature<IOSystem>(signature);
 	}
+	CustomWindowSystemInitInfo custom_window_system_init_info;
+	custom_window_system->initialize(&custom_window_system_init_info);
+	//模拟脚本的过程，后续读文件
+
+	//窗口
+	//窗口仍然需要传递指针给渲染系统记录，用于glfwPollEvents
+	Entity window_entity = ECSManager::Instance()->CreateEntity();
+	ECSWindow ecswindow;
+	ecswindow.width = 500;
+	ecswindow.height = 500;
+	//ecswindow.index = m_index;
+	ecswindow.title = "Renderwindow";
+	ecswindow.isFullscreen = false;
+	ECSManager::Instance()->AddComponent<ECSWindow>(window_entity, ecswindow);
+
+
+	
+
+	//相机
+	Entity camera_entity = ECSManager::Instance()->CreateEntity();
+
+	//视口
+	Entity renderport_entity = ECSManager::Instance()->CreateEntity();
+	RenderPort renderport;
+	renderport.camera = camera_entity;
+	renderport.setParent(window_entity);
+	ECSManager::Instance()->AddComponent<RenderPort>(renderport_entity, renderport);
+
+
+	Transfrom trans;
+	trans.position = TBMath::Vec3(6,1.5,-1.5);
+	trans.rotation = TBMath::Vec3(20, -50, 0);
+
+	Camera3D camera0;
+	//camera0.pos = TBMath::Vec3(2, 2, -2);
+	//camera0.lookat = TBMath::Vec3(0, 0, 0);
+	//camera0.up = TBMath::Vec3(0, 0, -1);
+	camera0.isOrthographic = false;
+	camera0.fovX = 60;
+	camera0.fovY = 60;// ((float)engine_init_info.window_width / (float)engine_init_info.window_width)* camera0.fovX;
+	camera0.nearClip = 0.1f;
+	camera0.farClip = 100.0f;
+	ECSManager::Instance()->AddComponent<Camera3D>(camera_entity, camera0);
+	ECSManager::Instance()->AddComponent<Transfrom>(camera_entity, trans);
+	//m_renderSystem->SetMainCamera(windowindex, camera_entity);
+	
+
+	
 
 	//手动初始化几何体
 	//std::vector<Entity> entities(MAX_ENTITIES - 1);

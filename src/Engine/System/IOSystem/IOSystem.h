@@ -4,7 +4,7 @@
 #include "IOTool.h"
 
 
-
+//IOSystem是整个ecs系统对core的接口
 
 namespace TourBillon
 {

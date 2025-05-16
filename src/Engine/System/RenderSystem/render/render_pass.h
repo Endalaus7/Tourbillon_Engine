@@ -3,14 +3,21 @@
 #include "rhi/rhi.h"
 #include "Structure/TB_List.hpp"
 
+//弃用
+
 namespace TourBillon
 {
 	struct RenderPassInitInfo{
-		std::shared_ptr<RHI>                rhi;
+		//std::shared_ptr<RHI>                rhi;
 		//std::shared_ptr<RenderResource> render_resource;
 	};
 	class RenderPipelineBase;
-	class RenderPass:public TBListMem
+
+	//renderpass应当也是组件化的，解决pass和视口之间互相复用的问题
+	//多个视口用一个pass时，使用两个subpass，或特殊情况使用VK_KHR_multiview扩展（VR,暂不考虑）
+
+
+	class RenderPass
 	{
 	public:
 		struct FrameBufferAttachment
@@ -46,11 +53,11 @@ namespace TourBillon
 		virtual void setup_DescriptorSetLayout() {}
 		virtual void setup_RenderPass() {}
 		virtual void setup_Pipeline() {}
-		virtual void setup_FrameBuffer() {}
+		//virtual void setup_FrameBuffer() {}
 
 		virtual void destroyFramebuffer() {}
 	protected:
-		std::shared_ptr<RHI>                m_rhi;
+		//std::shared_ptr<RHI>                m_rhi;
 		//std::shared_ptr<RenderResource> m_render_resource;
 
 		TBVector<Descriptor>      m_descriptor;

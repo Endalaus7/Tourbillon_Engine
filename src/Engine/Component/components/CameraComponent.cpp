@@ -9,6 +9,7 @@
 #endif // DEBUG
 
 
+
 TBMath::Mat44 TourBillon::Camera3D::GetProjMatrix()
 {
 	TBMath::Mat44 proj_mat = TBMath::perspective(TBMath::ToRadians(fovX), fovX / fovY, nearClip, farClip);

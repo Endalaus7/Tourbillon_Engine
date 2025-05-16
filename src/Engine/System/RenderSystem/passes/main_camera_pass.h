@@ -50,7 +50,7 @@ namespace TourBillon
 		//};
 
 		void updateUboData();
-		void updateUniformUboData(uint32_t windowindex);
+		void updateUniformUboData(uint32_t windowindex);//在每个具体的相机视角输入
 		void updateUboBuffer(RHIDrawInfo& info);
 		void updateMVPDescriptorSet();
 		void updateImageDescriptorSet();
@@ -63,7 +63,7 @@ namespace TourBillon
 		void setupDescriptorSet();
 
 		//Descriptor m_descriptor;
-		std::vector<Entity> m_camera;
+		//std::vector<Entity> m_camera;//camera应该包含pass，删除
 
 		uint32_t m_renderCount = 0;//render entities number
 

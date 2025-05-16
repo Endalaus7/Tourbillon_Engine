@@ -15,6 +15,9 @@
 public:                                                             \
     static VulkanType RHITo##VulkanType(const RHIType& value);				
 
+#define GET_VULKAN_RHI() std::dynamic_pointer_cast<VulkanRHI>(RHI_Factory::Instance()->getRHI(VULKAN_RHI))
+
+
 namespace TourBillon
 {
 	class VulkanRHIResource {
@@ -28,10 +31,10 @@ namespace TourBillon
 	public:
 	};
 
-	struct VulkanRenderPass:public RHIRenderPass
-	{
-		VkRenderPass renderpass;
-	};
+	//struct VulkanRenderPass:public RHIRenderPass
+	//{
+	//	VkRenderPass renderpass;
+	//};
 	struct VulkanPipeline :public RHIPipeline
 	{
 		VkPipeline pipeline;

@@ -11,16 +11,7 @@
 
 namespace TourBillon
 {
-	
-	struct Pass
-	{
-		STATIC_PROPERTY_CLASS_BEGIN()
-			
-		STATIC_PROPERTY_CLASS_END()
-	};
-
-	
-	struct ShaderData
+	struct ShaderData :public Reflectable
 	{
 		STATIC_PROPERTY_CLASS_BEGIN()
 			STATIC_PROPERTY_DEF()

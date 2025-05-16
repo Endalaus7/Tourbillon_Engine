@@ -2,7 +2,8 @@
 #include "log.hpp"
 void TourBillon::RenderPass::initialize(const RenderPassInitInfo* init_info)
 {
-	m_rhi = init_info->rhi;
+	//m_rhi = init_info->rhi;
+	m_rhi = RHI_Factory::Instance()->createRHI(render_init_info->rhi_type);
 	if (!m_rhi)
 		LOG_ERROR("RHI is empty");
 

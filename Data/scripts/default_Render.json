@@ -1,0 +1,35 @@
+{
+  "RHI": {
+	  "RenderPass": 
+	  {
+		"attachments": [
+			{
+				"type": "color",
+				"format": "R8G8B8A8_SRGB",
+				"samples": 1,
+				"loadOp": "clear",
+				"storeOp": "store",
+				"initialLayout": "UNDEFINED",
+				"finalLayout": "PRESENT_SRC_KHR"
+			},
+		],
+		"subpasses":[
+			{
+				"name": "main",
+				"colorAttachments": [0],
+				"depthAttachment": 1
+			}
+		],
+		"dependencies":[
+			{
+				"srcSubpass": "external",
+				"dstSubpass": "main",
+				"srcStage": "COLOR_ATTACHMENT_OUTPUT",
+				"dstStage": "COLOR_ATTACHMENT_OUTPUT",
+				"srcAccess": "NONE",
+				"dstAccess": "COLOR_ATTACHMENT_WRITE"
+			}
+		]
+	  }
+  }
+}

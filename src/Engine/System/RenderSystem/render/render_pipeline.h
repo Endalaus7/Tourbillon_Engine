@@ -13,7 +13,6 @@
 namespace TourBillon
 {
 	struct RenderPipelineInitInfo{
-		std::shared_ptr<RHI> rhi;
 		//Ñ¡ÔñÍ¨µÀ
 	};
 	struct RenderPassInitInfo;
@@ -50,6 +49,6 @@ namespace TourBillon
 
 		std::vector<RenderPass*> m_RenderPassList;
 
-		std::shared_ptr<RHI> m_rhi;
+		//std::shared_ptr<RHI> m_rhi;
 	};
 }
